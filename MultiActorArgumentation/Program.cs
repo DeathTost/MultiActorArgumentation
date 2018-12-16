@@ -18,8 +18,8 @@ namespace MultiActorArgumentation
                 var docProcessor = argumentationSystem.ActorOf(Props.Create(() => new DocumentProcessorActor()));
                 var judge = argumentationSystem.ActorOf(Props.Create(() => new JudgeActor()));
 
-                docProcessor.Tell("message");
-
+                //docProcessor.Tell("message");
+                judge.Tell(new CreateChildMsg("SomeMessage"));
                 argumentationSystem.WhenTerminated.Wait();
             }
         }

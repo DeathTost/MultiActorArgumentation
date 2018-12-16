@@ -11,9 +11,12 @@ namespace MultiActorArgumentation.Argumentation
     {
         public JudgeActor()
         {
-            Receive<string /*MESSAGE TYPE*/>((x) =>
+            Receive<CreateChildMsg>((x) =>
             {
-                //DO SOMETHING
+                var prosecutor = Context.ActorOf<ProsecutorActor>("ProsecutorActor");
+                var defender = Context.ActorOf<DefenderActor>("DefenderActor");
+                var root = Context.ActorOf(Props.Create(() => new TreeNodeActor(3)), "TreeRoot");
+                root.Tell("Create tree");
             });
         }
 

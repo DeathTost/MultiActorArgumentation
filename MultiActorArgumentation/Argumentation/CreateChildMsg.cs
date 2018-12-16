@@ -1,5 +1,4 @@
-﻿using Akka.Actor;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,11 +6,13 @@ using System.Threading.Tasks;
 
 namespace MultiActorArgumentation.Argumentation
 {
-    public class ProsecutorActor : ReceiveActor
+    public class CreateChildMsg
     {
-        public ProsecutorActor()
+        public CreateChildMsg(string name)
         {
-            Console.WriteLine("Ready to Attack.");
+            ChildName = name;
         }
+
+        public string ChildName { get; private set; }
     }
 }

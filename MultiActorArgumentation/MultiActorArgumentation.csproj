@@ -164,6 +164,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Argumentation\CreateChildMsg.cs" />
     <Compile Include="Argumentation\DefenderActor.cs" />
     <Compile Include="Argumentation\JudgeActor.cs" />
     <Compile Include="Argumentation\ProsecutorActor.cs" />

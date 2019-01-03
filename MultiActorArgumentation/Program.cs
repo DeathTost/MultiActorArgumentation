@@ -1,11 +1,6 @@
 ﻿using Akka.Actor;
 using MultiActorArgumentation.Argumentation;
 using MultiActorArgumentation.Nlp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MultiActorArgumentation
 {
@@ -18,8 +13,8 @@ namespace MultiActorArgumentation
                 var docProcessor = argumentationSystem.ActorOf(Props.Create(() => new DocumentProcessorActor()));
                 var judge = argumentationSystem.ActorOf(Props.Create(() => new JudgeActor()));
 
-                //docProcessor.Tell("message");
-                judge.Tell(new CreateChildMsg("SomeMessage"));
+                docProcessor.Tell("message");
+                //judge.Tell(new CreateChildMsg("SomeMessage"));
                 argumentationSystem.WhenTerminated.Wait();
             }
         }

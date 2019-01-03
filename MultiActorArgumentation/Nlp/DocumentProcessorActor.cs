@@ -1,14 +1,8 @@
 ﻿using Akka.Actor;
-using edu.stanford.nlp.ling;
-using java.io;
-using java.util;
-using edu.stanford.nlp.tagger;
-using edu.stanford.nlp.parser.lexparser;
-using edu.stanford.nlp.process;
-using edu.stanford.nlp.trees;
+using Python.Runtime;
+using System;
 using System.Collections.Generic;
-using edu.stanford.nlp.pipeline;
-using edu.stanford.nlp.util;
+using System.Linq;
 
 namespace MultiActorArgumentation.Nlp
 {
@@ -16,11 +10,51 @@ namespace MultiActorArgumentation.Nlp
     {
         public DocumentProcessorActor()
         {
+            Receive<string>((x) => 
+            {
+                //requires installing pythonnet in Python site-packages (pip install pythonnet)
+                //Debugger needs to be set to x64
+                //Py.Import works weird, temporary solution - copy your python files to bin/debug folder because file needs to be in the same place as .exe and .dlls
+                //converter python to .Net is working so current idea:
+                // 1. get path to file in C#
+                // 2. run python script with NLP and training model
+                // 3. return model to C# (only for storage, we will pass it to python when it is needed)
+                // 4. get user input in c# and run python again to classify our arguments
+                // 5. get the results from python and convert them to C# for better interpretation
+                // that means that we are working on data only in python, but input and output is processed in C#
+                using (Py.GIL())
+                {
+                    try
+                    {
+                        dynamic a = Py.Import("PythonExample");
+                        PyObject result = a.methodA();
+
+                        var converter = new PyConverter();
+                        converter.AddListType();
+                        converter.Add(new Int32Type());
+                        converter.Add(new Int64Type());
+                        converter.Add(new StringType());
+                        converter.AddDictType<string, object>();
+
+                        List<object> answer = (List<object>)converter.ToClr(result);
+                        Console.WriteLine((answer.First() as Dictionary<string, object>).First().Key);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                }
+            });
+        }
+
+        /*
+        private readonly string jarRoot = "...\\...\\...\\stanford-corenlp-full-2017-06-09";
+        public DocumentProcessorActor()
+        {
             Receive<string>((x) =>
             {
                 // Trzeba pobrać z ich strony plik stanford-corenlp-full-2017-06-09.zip
                 // po rozpakowaniu trzeba rozpakować folder z models.jar bo inaczej nie znajduje ścieżki
-                var jarRoot = "...\\...\\...\\stanford-corenlp-full-2017-06-09";
                 var modelsDirectory = jarRoot + "\\edu\\stanford\\nlp\\models";
                 var lp = LexicalizedParser.loadModel(modelsDirectory + "\\lexparser\\englishPCFG.ser.gz");
 
@@ -29,7 +63,7 @@ namespace MultiActorArgumentation.Nlp
                 var textReader = new StringReader(text);
                 var rawWords = tokenizerFactory.getTokenizer(textReader).tokenize();
 
-                var ngrams = GetNGramsPositions(rawWords, 1, 2);
+                var ngrams = GetNGramsWithPositions(rawWords, 1, 2);
                 foreach (var word in rawWords.toArray())
                 {
                     System.Console.WriteLine(word);
@@ -48,7 +82,7 @@ namespace MultiActorArgumentation.Nlp
             });
         }
 
-        public List<java.util.List> GetNGramsPositions(java.util.List items, int minSize, int maxSize)
+        public List<java.util.List> GetNGramsWithPositions(java.util.List items, int minSize, int maxSize)
         {
             List<java.util.List> ngrams = new List<java.util.List>();
             int listSize = items.size();
@@ -73,7 +107,6 @@ namespace MultiActorArgumentation.Nlp
 
         public void Tokenize()
         {
-            var jarRoot = "...\\...\\...\\stanford-corenlp-full-2017-06-09";
             var modelsDirectory = jarRoot + "\\edu\\stanford\\nlp\\models";
             var curDir = System.Environment.CurrentDirectory;
             System.IO.Directory.SetCurrentDirectory(jarRoot);
@@ -92,6 +125,6 @@ namespace MultiActorArgumentation.Nlp
                 stream.close();
             }
         }
-
+        */
     }
 }

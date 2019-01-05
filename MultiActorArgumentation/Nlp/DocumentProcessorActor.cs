@@ -26,8 +26,9 @@ namespace MultiActorArgumentation.Nlp
                 {
                     try
                     {
-                        dynamic a = Py.Import("PythonExample");
-                        PyObject result = a.methodA();
+                        dynamic a = Py.Import("data_loader");
+                        var path = System.IO.Path.GetFullPath("...\\...\\...\\Nlp\\Poland_Penal_Code.pdf");
+                        PyObject result = a.read_pdf_to_text(path);
 
                         var converter = new PyConverter();
                         converter.AddListType();
@@ -36,8 +37,9 @@ namespace MultiActorArgumentation.Nlp
                         converter.Add(new StringType());
                         converter.AddDictType<string, object>();
 
-                        List<object> answer = (List<object>)converter.ToClr(result);
-                        Console.WriteLine((answer.First() as Dictionary<string, object>).First().Key);
+                        string answer = (string)converter.ToClr(result);
+                        Console.WriteLine(answer);
+                        //Console.WriteLine((answer.First() as Dictionary<string, object>).First().Key);
                     }
                     catch (Exception e)
                     {

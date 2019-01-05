@@ -10,11 +10,12 @@ namespace MultiActorArgumentation
         {
             using (var argumentationSystem = ActorSystem.Create("ArgumentationSystem"))
             {
-                var docProcessor = argumentationSystem.ActorOf(Props.Create(() => new DocumentProcessorActor()));
-                var judge = argumentationSystem.ActorOf(Props.Create(() => new JudgeActor()));
+                var docProcessor = argumentationSystem.ActorOf(Props.Create(() => new DocumentProcessorActor()), "DocProcessor");
+                var judge = argumentationSystem.ActorOf(Props.Create(() => new JudgeActor()), "Judge");
 
-                docProcessor.Tell("message");
+                //docProcessor.Tell("message");
                 //judge.Tell(new CreateChildMsg("SomeMessage"));
+                judge.Tell(new UserInputMsg());
                 argumentationSystem.WhenTerminated.Wait();
             }
         }

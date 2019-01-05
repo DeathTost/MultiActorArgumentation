@@ -75,21 +75,22 @@ def get_ngrams(tokens, n ):
     n_grams = ngrams(tokens, n)
     return [ ' '.join(grams) for grams in n_grams]
 
-text = read_pdf_to_text('Poland_Penal_Code.pdf')
-print (text)
-sentences = sentence_tokenization(text)
-tokens = word_tokenization(text)
-cleaned_tokens = cleanup(tokens)
-stemmed_tokens = stemming(cleaned_tokens)
-tagged_tokens = pos_tagging(tokens)
-lemmatized_tokens = lemmatization(tagged_tokens)
-unigrams = get_ngrams(tokens, 1)
-bigrams = get_ngrams(tokens, 2)
-trigrams = get_ngrams(tokens, 3)
+#text = read_pdf_to_text('Poland_Penal_Code.pdf')
+#print (text)
+#sentences = sentence_tokenization(text)
+#tokens = word_tokenization(text)
+#cleaned_tokens = cleanup(tokens)
+#stemmed_tokens = stemming(cleaned_tokens)
+#tagged_tokens = pos_tagging(tokens)
+#lemmatized_tokens = lemmatization(tagged_tokens)
+#nigrams = get_ngrams(tokens, 1)
+#bigrams = get_ngrams(tokens, 2)
+#trigrams = get_ngrams(tokens, 3)
+
 # basic stuff is from nltk package
 # TODO bag-of-words, TF-IDF and other stuff should ne from scikit-learns packages
-print ("DONE")
-exit()
+#print ("DONE")
+#exit()
 
 # 0. Load data from pdf as text
 # 1. Gather data and label train examples

@@ -8,6 +8,8 @@ namespace MultiActorArgumentation.Nlp
 {
     public class DocumentProcessorActor : ReceiveActor
     {
+        private PyObject trainedModel;
+
         public DocumentProcessorActor()
         {
             Receive<string>((x) => 
@@ -46,87 +48,58 @@ namespace MultiActorArgumentation.Nlp
                         Console.WriteLine(e.Message);
                     }
                 }
+
+                Self.Tell(new LoadModelMsg("rf_model", "Poland_Penal_Code.pdf"));
             });
+            LoadModel();
         }
 
-        /*
-        private readonly string jarRoot = "...\\...\\...\\stanford-corenlp-full-2017-06-09";
-        public DocumentProcessorActor()
+        private void LoadModel()
         {
-            Receive<string>((x) =>
+            Receive<LoadModelMsg>((x) =>
             {
-                // Trzeba pobrać z ich strony plik stanford-corenlp-full-2017-06-09.zip
-                // po rozpakowaniu trzeba rozpakować folder z models.jar bo inaczej nie znajduje ścieżki
-                var modelsDirectory = jarRoot + "\\edu\\stanford\\nlp\\models";
-                var lp = LexicalizedParser.loadModel(modelsDirectory + "\\lexparser\\englishPCFG.ser.gz");
-
-                var text = "John has a white dog and a blue baloon.";
-                var tokenizerFactory = PTBTokenizer.factory(new CoreLabelTokenFactory(), "");
-                var textReader = new StringReader(text);
-                var rawWords = tokenizerFactory.getTokenizer(textReader).tokenize();
-
-                var ngrams = GetNGramsWithPositions(rawWords, 1, 2);
-                foreach (var word in rawWords.toArray())
+                if (string.IsNullOrEmpty(x.FileName))
                 {
-                    System.Console.WriteLine(word);
+                    Console.WriteLine("Empty file name.");
+                    return;
                 }
-                textReader.close();
-                var tree = lp.apply(rawWords);
-
-                var tlp = new PennTreebankLanguagePack();
-                var gsf = tlp.grammaticalStructureFactory();
-                var gs = gsf.newGrammaticalStructure(tree);
-                var tdl = gs.typedDependenciesCCprocessed();
-                System.Console.WriteLine($"{tdl}");
-
-                var tp = new TreePrint("penn,typedDependenciesCollapsed");
-                tp.printTree(tree);
-            });
-        }
-
-        public List<java.util.List> GetNGramsWithPositions(java.util.List items, int minSize, int maxSize)
-        {
-            List<java.util.List> ngrams = new List<java.util.List>();
-            int listSize = items.size();
-            for (int i = 0; i < listSize; ++i)
-            {
-                for (int ngramSize = minSize; ngramSize <= maxSize; ++ngramSize)
+                using (Py.GIL())
                 {
-                    if (i + ngramSize <= listSize)
+                    var path = System.IO.Path.GetFullPath("...\\...\\...\\Nlp\\");
+                    dynamic pythonDataLoader = Py.Import("data_loader");
+                    dynamic pythonDataProcessing = Py.Import("data_processing");
+                    dynamic pythonDataClassification = Py.Import("data_classifiers");
+                    if (System.IO.File.Exists(path + x.ModelName))
                     {
-                        java.util.List ngram = new java.util.ArrayList();
-                        for (int j = i; j < i + ngramSize; ++j)
+                        trainedModel = pythonDataLoader.load_model(path + x.ModelName);
+                    }
+                    else
+                    {
+                        if (System.IO.File.Exists(path + x.FileName))
                         {
-                            ngram.add(items.get(j).ToString());
+                            PyObject data = pythonDataLoader.read_pdf_to_text(path + x.FileName);
+                            trainedModel = pythonDataClassification.build_RandomForest(pythonDataProcessing.sentence_tokenization(data), pythonDataClassification.encode_labels(pythonDataProcessing.sentence_tokenization(data)));
+                            pythonDataLoader.save_model(trainedModel, path + x.ModelName);
                         }
-                        ngram.add(i.ToString());
-                        ngrams.Add(ngram);
+                        else
+                        {
+                            Console.WriteLine("No file found.");
+                        }
                     }
                 }
-            }
-            return ngrams;
+            });
         }
+    }
 
-        public void Tokenize()
+    public class LoadModelMsg
+    {
+        public LoadModelMsg(string modelName, string fileName)
         {
-            var modelsDirectory = jarRoot + "\\edu\\stanford\\nlp\\models";
-            var curDir = System.Environment.CurrentDirectory;
-            System.IO.Directory.SetCurrentDirectory(jarRoot);
-
-            Properties properties = new Properties();
-            properties.setProperty("annotators", "tokenize,ssplit,pos,lemma");
-            StanfordCoreNLP pipeline = new StanfordCoreNLP(properties);
-            System.IO.Directory.SetCurrentDirectory(curDir);
-            Annotation tokenAnnotation = new Annotation("Disability is to be able to achieve the greatest in life");
-            pipeline.annotate(tokenAnnotation);
-
-            using (var stream = new ByteArrayOutputStream())
-            {
-                pipeline.prettyPrint(tokenAnnotation, new PrintWriter(stream));
-                System.Console.WriteLine(stream.toString());
-                stream.close();
-            }
+            ModelName = modelName;
+            FileName = fileName;
         }
-        */
+
+        public string ModelName { get; private set; }
+        public string FileName { get; private set; }
     }
 }

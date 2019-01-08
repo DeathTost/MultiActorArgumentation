@@ -36,8 +36,7 @@ namespace MultiActorArgumentation.Argumentation
             Receive<RelatedArgumentsQueryMsg>((x) =>
             {
                 Console.WriteLine("Passing message further");
-                x.AppendArgument(Argument);
-                Context.Parent.Tell(x);
+                Context.Parent.Tell(x.AppendArgument(Argument));
             });
 
             Receive<RelatedArgumentsProsecutorResponseMsg>((x) =>

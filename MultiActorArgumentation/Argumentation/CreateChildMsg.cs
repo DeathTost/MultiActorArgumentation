@@ -44,17 +44,26 @@ namespace MultiActorArgumentation.Argumentation
     {
         public RelatedArgumentsQueryMsg(int argument, IActorRef querySender)
         {
-            BlacklistedArguments = new List<int>();
-            BlacklistedArguments.Add(argument);
+            var list = new List<int>();
+            list.Add(argument);
+            BlacklistedArguments = list;
             QuerySender = querySender;
         }
 
-        public void AppendArgument(int argument)
+        public RelatedArgumentsQueryMsg(List<int> args, IActorRef querySender)
         {
-            BlacklistedArguments.Add(argument);
+            BlacklistedArguments = new List<int>(args);
+            QuerySender = querySender;
         }
 
-        public List<int> BlacklistedArguments { get; private set; }
+        public RelatedArgumentsQueryMsg AppendArgument(int argument)
+        {
+            var list = new List<int>(BlacklistedArguments);
+            list.Add(argument);
+            return new RelatedArgumentsQueryMsg(list, QuerySender);
+        }
+
+        public IReadOnlyList<int> BlacklistedArguments { get; private set; }
         public IActorRef QuerySender { get; private set; }
     }
 
@@ -64,7 +73,7 @@ namespace MultiActorArgumentation.Argumentation
         {
             RelatedArguments = argsList;
         }
-        public List<int> RelatedArguments { get; private set; }
+        public IReadOnlyList<int> RelatedArguments { get; private set; }
     }
 
     public class RelatedArgumentsProsecutorResponseMsg
@@ -73,7 +82,7 @@ namespace MultiActorArgumentation.Argumentation
         {
             RelatedArguments = argsList;
         }
-        public List<int> RelatedArguments { get; private set; }
+        public IReadOnlyList<int> RelatedArguments { get; private set; }
     }
 
     public class NodeResultMsg

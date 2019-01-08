@@ -5,18 +5,23 @@ namespace MultiActorArgumentation.Argumentation
 {
     public class JudgeActor : ReceiveActor
     {
+        private IActorRef Prosecutor;
+        private IActorRef Defender;
+        private IActorRef Root;
+
         public JudgeActor()
         {
             ReceiveUserInput();
             StartArgumentation();
+            ArgumentRedirection();
             EndArgumentation();
         }
 
         protected override void PreStart()
         {
             //DO SOMETHING - MAYBE START ARGUMENTATION TREE 
-            var prosecutor = Context.ActorOf<ProsecutorActor>("ProsecutorActor");
-            var defender = Context.ActorOf<DefenderActor>("DefenderActor");
+            Prosecutor = Context.ActorOf(Props.Create(() => new ProsecutorActor()), "ProsecutorActor");
+            Defender = Context.ActorOf(Props.Create(() => new DefenderActor()), "DefenderActor");
         }
 
         protected override SupervisorStrategy SupervisorStrategy()
@@ -50,16 +55,16 @@ namespace MultiActorArgumentation.Argumentation
                 Console.WriteLine("Please provide a path to a file with your case.");
                 var argumentationPath = Console.ReadLine();
 
-                if (System.IO.File.Exists(argumentationPath))
+                //if (System.IO.File.Exists(argumentationPath))
                 {
                     Self.Tell(new StartArgumentationTreeMsg());
                 }
-                else
-                {
-                    Console.WriteLine("File not found! Please provide an existing file.");
-                    Console.WriteLine("Judge has left!");
-                    Self.Tell(new UserInputMsg());
-                }
+                //else
+                //{
+                //    Console.WriteLine("File not found! Please provide an existing file.");
+                //    Console.WriteLine("Judge has left!");
+                //    Self.Tell(new UserInputMsg());
+                //}
             });
         }
 
@@ -68,8 +73,8 @@ namespace MultiActorArgumentation.Argumentation
             Receive<StartArgumentationTreeMsg>((_) =>
             {
                 Console.WriteLine($"Judge: {Self.Path}");
-                var root = Context.ActorOf(Props.Create(() => new TreeNodeActor(3)), "TreeRoot");
-                root.Tell(new CreateChildMsg(""));
+                //for now starting with argument 1 
+                Root = Context.ActorOf(Props.Create(() => new TreeNodeActor(1,3)), "TreeRoot");
             });
         }
 
@@ -82,6 +87,30 @@ namespace MultiActorArgumentation.Argumentation
                 Console.WriteLine("Judge has left!");
                 Console.WriteLine("Case is closed!");
             });
+
+            Receive<NodeResultMsg>((x) =>
+            {
+                Console.WriteLine("Case is closed!");
+                if (x.Active)
+                {
+                    Console.WriteLine("Thesis has been proved!");
+                }
+                else
+                {
+                    Console.WriteLine("Thesis has been disproved!");
+                }
+                Console.WriteLine("Judge has left!");
+            });
         }
+
+        private void ArgumentRedirection()
+        {
+            Receive<RelatedArgumentsQueryMsg>((x) =>
+            {
+                Prosecutor.Tell(x);
+                Defender.Tell(x);
+            });
+        }
+
     }
 }

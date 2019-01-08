@@ -18,6 +18,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import SGDClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
+from collections import Counter
+import math
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 
 def read_pdf_to_text(pdf_path):
@@ -30,182 +32,41 @@ def read_pdf_to_text(pdf_path):
         page = read_pdf.getPage(page_number)
         page_content = page.extractText()
         text += page_content
-        #text_file.write(page_content.encode('utf-8'))
 
     if text != "":
         text = text
     return text
 
-class NLTKPreprocessor(BaseEstimator, TransformerMixin):
-
-    def __init__(self, stopwords=None, punct=None,
-                 lower=True, strip=True):
-        self.lower      = lower
-        self.strip      = strip
-        self.stopwords  = stopwords or set(nltk.corpus.stopwords.words('english'))
-        self.punct      = punct or set(string.punctuation)
-        self.lemmatizer = WordNetLemmatizer()
-
-    def fit(self, X, y=None):
-        return self
-
-    def inverse_transform(self, X):
-        return [" ".join(doc) for doc in X]
-
-    def transform(self, X):
-        return [
-            list(self.tokenize(doc)) for doc in X
-        ]
-
-    def tokenize(self, document):
-        # Break the document into sentences
-        for sent in sent_tokenize(document):
-            # Break the sentence into part of speech tagged tokens
-            for token, tag in pos_tag(wordpunct_tokenize(sent)):
-                # Apply preprocessing to the token
-                token = token.lower() if self.lower else token
-                token = token.strip() if self.strip else token
-                token = token.strip('_') if self.strip else token
-                token = token.strip('*') if self.strip else token
-
-                # If stopword, ignore token and continue
-                if token in self.stopwords:
-                    continue
-
-                # If punctuation, ignore token and continue
-                if all(char in self.punct for char in token):
-                    continue
-
-                # Lemmatize the token and yield
-                lemma = self.lemmatize(token, tag)
-                yield lemma
-
-    def lemmatize(self, token, tag):
-        tag = {
-            'N': wordnet.NOUN,
-            'V': wordnet.VERB,
-            'R': wordnet.ADV,
-            'J': wordnet.ADJ
-        }.get(tag[0], wordnet.NOUN)
-
-        return self.lemmatizer.lemmatize(token, tag)
-
-
-def cleanup(tokens):
-    stop_words = stopwords.words('english')
-    keywords = [word for word in tokens if not word in stop_words]
-    return keywords
-
-def sentence_tokenization(text):
-    sen_tokens = sent_tokenize(text)
-    return sen_tokens
-
-def word_tokenization(text):
-    word_tokens = word_tokenize(text)
-    return word_tokens
-
-def stemming(words):
-    ps = PorterStemmer()
-    stemmed_words = []
-    for w in words:
-        stemmed_words.append(ps.stem(w))
-    return stemmed_words
-
-def lemmatization(tagged_words):
-    lemmatizer = WordNetLemmatizer()
-    lemmatized_words = []
-    for word, tag in tagged_words:
-        wntag = get_wordnet_pos(tag)
-        if wntag is None:  # not supply tag in case of None
-            lemma = lemmatizer.lemmatize(word)
-        else:
-            lemma = lemmatizer.lemmatize(word, pos=wntag)
-        lemmatized_words.append((lemma,tag))
-    return lemmatized_words
-
-def pos_tagging(tokens):
-    return nltk.pos_tag(tokens)
-
-def get_wordnet_pos(word_tag):
-
-    if word_tag.startswith('J'):
-        return wordnet.ADJ
-    elif word_tag.startswith('V'):
-        return wordnet.VERB
-    elif word_tag.startswith('N'):
-        return wordnet.NOUN
-    elif word_tag.startswith('R'):
-        return wordnet.ADV
-    else:
-        return None
-
-def get_ngrams(tokens, n ):
-    n_grams = ngrams(tokens, n)
-    return [ ' '.join(grams) for grams in n_grams]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def save_model(model):
-    with open('text_classifier_model', 'wb') as picklefile:
+def save_model(model, file):
+    with open(file, 'wb') as picklefile:
         pickle.dump(model, picklefile)
 
-def load_model():
-    with open('text_classifier_model', 'rb') as training_model:
+def load_model(file):
+    with open(file, 'rb') as training_model:
         return pickle.load(training_model)
 
-def classify_naive_bayes(train, labels):
-    classifier = MultinomialNB().fit(train, labels)
-    return classifier
 
-def classify_svm(train, labels):
-    classifier = SGDClassifier().fit(train, labels)
-    return classifier
-
-def classify_random_forest(train, labels):
-    classifier = RandomForestClassifier(n_estimators=1000, random_state=0).fit(train, labels)
-    return classifier
-
-def identity(arg):
-    return arg
-
-def predict(classifier, test):
-    return classifier.predict(test)
-
-def build(classifier, X, y=None):
-        model = Pipeline([
-            ('preprocessor', NLTKPreprocessor()),
-            ('vectorizer', TfidfVectorizer(
-                tokenizer=identity, preprocessor=None, lowercase=False
-            )),
-            ('classifier', classifier),])
-
-        model.fit(X, y)
-        return model
 
 
 #labels = LabelEncoder()
 #y = labels.fit_transform(["pos","neg"])
-#model = build(RandomForestClassifier(), ["John got a new job.", "Bob is handsome."], y)
+#model = load_model('text_classifier_model')#build(RandomForestClassifier(), ["John got a new job.", "Bob is handsome."], y)
+#save_model(model)
 #pred = model.predict(["John got a new job."])
-
-
-
-
-
-
+#pred3 = predict_arguments(model, ["John got a new job.", "Alice is poor."])
 
 #text = read_pdf_to_text('Poland_Penal_Code.pdf')
+#sentence = [pair[1] for pair in pred3]
+#print (evaluate_sentence(sentence[0], sentence[1], 3))
+#count = len(sentence_tokenization(text))
+#label = [x % 2 for x in range(0,count)]
+#newModel = build(MultinomialNB(), sentence_tokenization(text), label)
+#resultPredict = predict_arguments(newModel, sentence_tokenization(text))
+#resultPredict = predict_arguments(newModel, ["John got a new job.", "Alice is poor."])
+#print (evaluate_sentence("Bob has wife.","Bob has wife and job.", 3))
+
+
+
 #print (text)
 #sentences = sentence_tokenization(text)
 #tokens = word_tokenization(text)
@@ -216,9 +77,6 @@ def build(classifier, X, y=None):
 #unigrams = get_ngrams(tokens, 1)
 #bigrams = get_ngrams(tokens, 2)
 #trigrams = get_ngrams(tokens, 3)
-
-
-
 
 #TF
 #vectorizer = CountVectorizer(max_features=1500, min_df=5, max_df=0.7, stop_words=stopwords.words('english'))

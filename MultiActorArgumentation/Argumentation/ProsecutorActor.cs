@@ -1,13 +1,19 @@
 ﻿using Akka.Actor;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace MultiActorArgumentation.Argumentation
 {
     public class ProsecutorActor : ReceiveActor
     {
+        List<int> ProsArgs = new List<int>(new int[] { 1, 4, 5, 6 });
         public ProsecutorActor()
         {
-            Console.WriteLine("Ready to Attack.");
+            Receive<RelatedArgumentsQueryMsg>((x) =>
+            {
+                x.QuerySender.Tell(new RelatedArgumentsProsecutorResponseMsg(ProsArgs.Where((e) => !x.BlacklistedArguments.Contains(e)).ToList()));
+            });
         }
     }
 }

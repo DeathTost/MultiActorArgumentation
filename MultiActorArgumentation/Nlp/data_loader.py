@@ -1,26 +1,6 @@
-import nltk
-import string
+import csv
 import pickle
 from PyPDF2 import PdfFileReader
-from nltk.tokenize import sent_tokenize, word_tokenize, wordpunct_tokenize
-from nltk import pos_tag
-from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer
-from nltk.stem.wordnet import WordNetLemmatizer
-from nltk.corpus import wordnet
-from nltk.util import ngrams
-from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction.text import TfidfTransformer
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import SGDClassifier
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import LabelEncoder
-from collections import Counter
-import math
-from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 
 def read_pdf_to_text(pdf_path):
     pdf_file = open(pdf_path, 'rb')
@@ -45,6 +25,21 @@ def load_model(file):
     with open(file, 'rb') as training_model:
         return pickle.load(training_model)
 
+def write_text_to_csv(sentences, file):
+    with open(file, "w", newline='') as csv_file:
+        writer = csv.writer(csv_file, delimiter=';')
+        writer.writerow(['Value', 'Text'])
+        for line in sentences:
+            writer.writerow(['', line.encode("utf-8")])
+
+def read_csv(file):
+    with open(file, "r", newline='') as csv_file:
+        reader = csv.reader(csv_file, delimiter=';')
+        new_output = []
+        next(reader)
+        for line in reader:
+            new_output.append((line[0], line[1]))
+        return new_output
 
 
 

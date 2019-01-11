@@ -19,15 +19,12 @@ namespace MultiActorArgumentation.Argumentation
 
         protected override void PreStart()
         {
-            //DO SOMETHING - MAYBE START ARGUMENTATION TREE 
             Prosecutor = Context.ActorOf(Props.Create(() => new ProsecutorActor()), "ProsecutorActor");
             Defender = Context.ActorOf(Props.Create(() => new DefenderActor()), "DefenderActor");
         }
 
         protected override SupervisorStrategy SupervisorStrategy()
         {
-            //DO SOMETHING - WHAT TO DO IN CASE OF EXCEPTION
-            //sample code
             return new OneForOneStrategy(
                 maxNrOfRetries: 10,
                 withinTimeRange: TimeSpan.FromMinutes(1),
@@ -35,12 +32,9 @@ namespace MultiActorArgumentation.Argumentation
                 {
                     switch (ex)
                     {
-                        case NullReferenceException e:
+                        case ActorKilledException e:
+                            Console.WriteLine($"One of Judge children was killed. Exception: {e.Message}");
                             return Directive.Restart;
-                        case ArgumentException e:
-                            return Directive.Resume;
-                        case InvalidOperationException e:
-                            return Directive.Stop;
                         default:
                             return Directive.Escalate;
                     }
@@ -55,16 +49,8 @@ namespace MultiActorArgumentation.Argumentation
                 Console.WriteLine("Please provide a path to a file with your case.");
                 var argumentationPath = Console.ReadLine();
 
-                //if (System.IO.File.Exists(argumentationPath))
-                {
-                    Self.Tell(new StartArgumentationTreeMsg());
-                }
-                //else
-                //{
-                //    Console.WriteLine("File not found! Please provide an existing file.");
-                //    Console.WriteLine("Judge has left!");
-                //    Self.Tell(new UserInputMsg());
-                //}
+                Self.Tell(new StartArgumentationTreeMsg());
+                Context.System.Scheduler.ScheduleOnce(TimeSpan.FromSeconds(100), Prosecutor, Kill.Instance);
             });
         }
 

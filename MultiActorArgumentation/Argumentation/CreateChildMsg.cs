@@ -1,5 +1,4 @@
-﻿
-using Akka.Actor;
+﻿using Akka.Actor;
 using System.Collections.Generic;
 
 namespace MultiActorArgumentation.Argumentation
@@ -50,7 +49,7 @@ namespace MultiActorArgumentation.Argumentation
             QuerySender = querySender;
         }
 
-        public RelatedArgumentsQueryMsg(List<int> args, IActorRef querySender)
+        public RelatedArgumentsQueryMsg(IList<int> args, IActorRef querySender)
         {
             BlacklistedArguments = new List<int>(args);
             QuerySender = querySender;

@@ -8,8 +8,8 @@ namespace MultiActorArgumentation.Argumentation
     {
         private int Argument;
 
-        private Dictionary<int, IActorRef> ProsecutorChildren = new Dictionary<int, IActorRef>();
-        private Dictionary<int, IActorRef> DefenderChildren = new Dictionary<int, IActorRef>();
+        private IDictionary<int, IActorRef> ProsecutorChildren = new Dictionary<int, IActorRef>();
+        private IDictionary<int, IActorRef> DefenderChildren = new Dictionary<int, IActorRef>();
         private int ProsecutorResponseCounter = 0;
         private int DefenderResponseCounter = 0;
 
@@ -22,6 +22,8 @@ namespace MultiActorArgumentation.Argumentation
         public TreeNodeActor(int argument, int layersLeft)
         {
             Argument = argument;
+            Context.SetReceiveTimeout(TimeSpan.FromSeconds(100));
+            System.Console.WriteLine(Context.Self.Path);
             if (layersLeft != 0)
             {
                 Context.Parent.Tell(new RelatedArgumentsQueryMsg(argument, Context.Self));
@@ -31,46 +33,78 @@ namespace MultiActorArgumentation.Argumentation
                 System.Console.WriteLine($"{layersLeft} is 0. No new children.");
                 Context.Parent.Tell(new NodeResultMsg(argument));
             }
-            System.Console.WriteLine(Context.Self.Path);
 
+            CreateDefenderChildren(layersLeft);
+            CreateProsecutorChildren(layersLeft);
+            ForwardMessage();
+            EvaluateNode();
+        }
+
+        private void ForwardMessage()
+        {
             Receive<RelatedArgumentsQueryMsg>((x) =>
             {
                 Console.WriteLine("Passing message further");
                 Context.Parent.Tell(x.AppendArgument(Argument));
             });
+        }
 
+        private void WaitingTooLongForAnswer()
+        {
+            Receive<ReceiveTimeout>((x) =>
+            {
+                if (!ProsecutorAnswered)
+                {
+                    Self.Tell(new RelatedArgumentsProsecutorResponseMsg(new List<int>() { }));
+                }
+
+                if (!DefenderAnswered)
+                {
+                    Self.Tell(new RelatedArgumentsDefenderResponseMsg(new List<int>() { }));
+                }
+            });
+        }
+
+        private void CreateDefenderChildren(int layersLeft)
+        {
+            Receive<RelatedArgumentsDefenderResponseMsg>((x) =>
+            {
+                Console.WriteLine("Creating Defender children");
+                foreach (var id in x.RelatedArguments)
+                {
+                    var child = Context.ActorOf(Props.Create(() => new TreeNodeActor(id, layersLeft - 1)), "argument" + id);
+                    DefenderChildren.Add(id, child);
+                }
+                DefenderAnswered = true;
+                if (DefenderAnswered && ProsecutorAnswered && DefenderChildren.Count == 0 && ProsecutorChildren.Count == 0)
+                {
+                    System.Console.WriteLine("Got no arguments from Prosecutor and Defender");
+                    Context.Parent.Tell(new NodeResultMsg(Argument));
+                }
+            });
+        }
+
+        private void CreateProsecutorChildren(int layersLeft)
+        {
             Receive<RelatedArgumentsProsecutorResponseMsg>((x) =>
             {
                 Console.WriteLine("Creating Defender children");
                 foreach (var id in x.RelatedArguments)
                 {
                     var child = Context.ActorOf(Props.Create(() => new TreeNodeActor(id, layersLeft - 1)), "argument" + id);
-                    ProsecutorChildren.Add(id,child);
+                    ProsecutorChildren.Add(id, child);
                 }
                 ProsecutorAnswered = true;
                 if (DefenderAnswered && ProsecutorAnswered && DefenderChildren.Count == 0 && ProsecutorChildren.Count == 0)
                 {
                     System.Console.WriteLine("Got no arguments from Prosecutor and Defender");
-                    Context.Parent.Tell(new NodeResultMsg(argument));
+                    Context.Parent.Tell(new NodeResultMsg(Argument));
                 }
             });
+        }
 
-            Receive<RelatedArgumentsDefenderResponseMsg>((x) =>
-            {
-                Console.WriteLine("Creating Defender children");
-                foreach (var id in x.RelatedArguments)
-                {
-                    var child = Context.ActorOf(Props.Create(() => new TreeNodeActor(id, layersLeft - 1)), "argument"+id);
-                    DefenderChildren.Add(id,child);
-                }
-                DefenderAnswered = true;
-                if (DefenderAnswered && ProsecutorAnswered && DefenderChildren.Count == 0 && ProsecutorChildren.Count == 0)
-                {
-                    System.Console.WriteLine("Got no arguments from Prosecutor and Defender");
-                    Context.Parent.Tell(new NodeResultMsg(argument));
-                }
-            });
-
+        private void EvaluateNode()
+        {
             Receive<NodeResultMsg>((x) =>
             {
                 Console.WriteLine("Got response from child");
@@ -91,47 +125,37 @@ namespace MultiActorArgumentation.Argumentation
                     if (Argument * EvaluationValue >= 0)
                     {
                         System.Console.WriteLine("Evaluated to be active");
-                        Context.Parent.Tell(new NodeResultMsg(argument));
+                        Context.Parent.Tell(new NodeResultMsg(Argument));
                     }
                     else
                     {
                         System.Console.WriteLine("Evaluated to be disactivated");
-                        Context.Parent.Tell(new NodeResultMsg(argument, false));
+                        Context.Parent.Tell(new NodeResultMsg(Argument, false));
                     }
                 }
             });
+        }
 
-            //legacy
-            //Receive<CreateChildMsg>((x) =>
-            //{
-            //    layerLeft--;
-            //    if (layerLeft < 0)
-            //    {
-            //        System.Console.WriteLine($"{layerLeft} is lower than 0. No new childs.");
-            //        Sender.Tell(new EndArgumentationMsg("Guilty"));
-            //        return;
-            //    }
-            //    var leftChild = Context.ActorOf(Props.Create(() => new TreeNodeActor(layerLeft)), $"Left{layerLeft}");
-            //    var rightChild = Context.ActorOf(Props.Create(() => new TreeNodeActor(layerLeft)), $"Right{layerLeft}");
-            //    leftChild.Tell(new CreateChildMsg(""));
-            //    rightChild.Tell(new CreateChildMsg(""));
-            //});
-            //Receive<EndArgumentationMsg>((x) =>
-            //{
-            //    Console.WriteLine("Sending EndingMessage");
-            //    Console.WriteLine($"Sender: {Sender.Path}");
-            //    Console.WriteLine($"Receiver: {Self.Path}");
-            //    Console.WriteLine($"Parent: {Context.Parent.Path}");
-            //    Context.Parent.Tell(new EndArgumentationMsg(x.ArgumentationResult));
-            //});
-            //Receive<EndArgumentationMsg>((x) =>
-            //{
-            //    Console.WriteLine("Sending EndingMessage");
-            //    Console.WriteLine($"Sender: {Sender.Path}");
-            //    Console.WriteLine($"Receiver: {Self.Path}");
-            //    Console.WriteLine($"Parent: {Context.Parent.Path}");
-            //    Context.Parent.Tell(new EndArgumentationMsg(x.ArgumentationResult));
-            //});
+        protected override SupervisorStrategy SupervisorStrategy()
+        {
+            return new OneForOneStrategy(
+                maxNrOfRetries: 10,
+                withinTimeRange: TimeSpan.FromSeconds(1),
+                localOnlyDecider: ex =>
+                {
+                    switch (ex)
+                    {
+                        case ActorKilledException e:
+                            return Directive.Stop;
+                        default:
+                            return Directive.Stop;
+                    }
+                });
+        }
+
+        protected override void PostStop()
+        {
+            Console.WriteLine($"{Self.Path} was killed!");
         }
     }
 }

@@ -33,19 +33,20 @@ def write_text_to_csv(sentences, file):
         for line in sentences:
             writer.writerow(['', line.encode("utf-8")])
 
-def read_csv(file):
+def read_csv(file, delimiter = ';'):
     with open(file, "r", newline='') as csv_file:
-        reader = csv.reader(csv_file, delimiter=';')
+        reader = csv.reader(csv_file, delimiter=delimiter)
         new_output = []
         next(reader)
         for line in reader:
             new_output.append((line[0], line[1]))
         return new_output
+        
 
 def write_paragraphs_to_csv(text, file):
     paragraphs = split_into_paragraphs(text)
     with open (file, "w", newline = '') as csv_file:
-        writer = csv.writer(csv_file, delimiter=';')
+        writer = csv.writer(csv_file, delimiter='#')
         writer.writerow(['Value', 'Text'])
         for paragraph in paragraphs:
             writer.writerow(['', paragraph.encode("utf-8")])
@@ -57,6 +58,17 @@ def split_into_paragraphs(text):
         if (p != None) and (p != ""):
             paragraphs_not_empty.append(p)
     return paragraphs_not_empty
+    
+def read_paragraphs_from_csv(file):
+    return read_csv(file, '#')
+    
+def read_text_of_paragraphs(file):
+    paragraph_tuples = read_paragraphs_from_csv(file)
+    return [paragraph_text for (paragraph_label, paragraph_text) in paragraph_tuples]
+    
+def read_labels_of_paragraphs(file):
+    paragraph_tuples = paragraph_tuples = read_paragraphs_from_csv(file)
+    return [paragraph_label for (paragraph_label, paragraph_text) in paragraph_tuples]
     
 def split_into_articles(text):
     articles = re.split("Article *[0-9]+\. *", text)
@@ -86,17 +98,21 @@ def split_articles_into_paragraphs(articles):
 #pred = model.predict(["John got a new job."])
 #pred3 = predict_arguments(model, ["John got a new job.", "Alice is poor."])
 #######################
-text = read_pdf_to_text('Poland_Penal_Code.pdf')
+#text = read_pdf_to_text('Poland_Penal_Code.pdf')
+paragraphs = read_labels_of_paragraphs("paragraphs_labeled.csv")
+print (paragraphs)
+for p in paragraphs:
+    print (p)
 #print (text)
 #paras = split_into_paragraphs(text)
 #for p in paras:
 #    print (p)
 #    print ("---------------")
 #write_paragraphs_to_csv(text, "paragraphs.csv")
-articles = split_into_articles(text)
-for a in articles:
-    print (a)
-    print ("---------------")
+#articles = split_into_articles(text)
+#for a in articles:
+#    print (a)
+#    print ("---------------")
 #articles_dict = split_articles_into_paragraphs(articles)
 #for key in articles_dict:
 #    print (key)

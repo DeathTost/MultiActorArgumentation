@@ -77,8 +77,8 @@ namespace MultiActorArgumentation.Nlp
                     {
                         if (System.IO.File.Exists(path + x.FileName))
                         {
-                            PyObject data = pythonDataLoader.read_pdf_to_text(path + x.FileName);
-                            trainedModel = pythonDataClassification.build_RandomForest(pythonDataProcessing.sentence_tokenization(data), pythonDataClassification.encode_labels(pythonDataProcessing.sentence_tokenization(data)));
+                            //PyObject data = pythonDataLoader.read_pdf_to_text(path + x.FileName);
+                            trainedModel = pythonDataClassification.build_RandomForest(pythonDataLoader.read_text_of_paragraphs(x.FileName), pythonDataLoader.read_labels_of_paragraphs(x.FileName));
                             pythonDataLoader.save_model(trainedModel, path + x.ModelName);
                         }
                         else

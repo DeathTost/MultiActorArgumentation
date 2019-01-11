@@ -7,7 +7,7 @@ namespace MultiActorArgumentation.Argumentation
 {
     public class ProsecutorActor : ReceiveActor
     {
-        List<int> ProsArgs = new List<int>(new int[] { 1, 4, 5, 6 });
+        private IList<int> ProsArgs = new List<int>(new int[] { 1, 4, 5, 6 });
         public ProsecutorActor()
         {
             Receive<RelatedArgumentsQueryMsg>((x) =>

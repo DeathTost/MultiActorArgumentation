@@ -7,7 +7,7 @@ namespace MultiActorArgumentation.Argumentation
 {
     public class DefenderActor : ReceiveActor
     {
-        List<int> DefArgs = new List<int>(new int[] { -1, -2, -3, -4 });
+        private IList<int> DefArgs = new List<int>(new int[] { -1, -2, -3, -4 });
         public DefenderActor()
         {
             Receive<RelatedArgumentsQueryMsg>((x) =>

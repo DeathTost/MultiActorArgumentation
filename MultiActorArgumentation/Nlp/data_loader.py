@@ -1,6 +1,7 @@
 import csv
 import pickle
 from PyPDF2 import PdfFileReader
+import re
 
 def read_pdf_to_text(pdf_path):
     pdf_file = open(pdf_path, 'rb')
@@ -41,6 +42,41 @@ def read_csv(file):
             new_output.append((line[0], line[1]))
         return new_output
 
+def write_paragraphs_to_csv(text, file):
+    paragraphs = split_into_paragraphs(text)
+    with open (file, "w", newline = '') as csv_file:
+        writer = csv.writer(csv_file, delimiter=';')
+        writer.writerow(['Value', 'Text'])
+        for paragraph in paragraphs:
+            writer.writerow(['', paragraph.encode("utf-8")])
+            
+def split_into_paragraphs(text):
+    paragraphs = re.split("\s*Article *[0-9]+\. *|\s*\u00A7 *[0-9]+\. *|\s*Article *[0-9]+\. *\u00A7 *[0-9]+\. ", text)
+    paragraphs_not_empty = []
+    for p in paragraphs:
+        if (p != None) and (p != ""):
+            paragraphs_not_empty.append(p)
+    return paragraphs_not_empty
+    
+def split_into_articles(text):
+    articles = re.split("Article *[0-9]+\. *", text)
+    return ["Article " + str(i+1) + ". " + articles[i+1] for i in range(len(articles)-1)]
+    
+def split_articles_into_paragraphs(articles):
+    articles_dict = {}
+    for a in articles:
+        paragraphs = re.split("\u00A7 *[0-9]+\. *", a)
+        article_name = paragraphs[0]
+        if len(paragraphs) > 1:
+            articles_dict[article_name] = ["\u00A7 " + str(i+1) + ". " + paragraphs[i+1] for i in range(len(paragraphs)-1)]
+        else:
+            article_name_match = re.fullmatch("Article *[0-9]+\. ", article_name)
+            print (article_name_match)
+            if article_name_match != None:
+                article_name_only = article_name_match[0]
+                article_content = re.split("Article *[0-9]+\. ", article_name)[1]
+                articles_dict[article_name] = article_content
+    return articles_dict
 
 
 #labels = LabelEncoder()
@@ -49,8 +85,27 @@ def read_csv(file):
 #save_model(model)
 #pred = model.predict(["John got a new job."])
 #pred3 = predict_arguments(model, ["John got a new job.", "Alice is poor."])
+#######################
+text = read_pdf_to_text('Poland_Penal_Code.pdf')
+#print (text)
+#paras = split_into_paragraphs(text)
+#for p in paras:
+#    print (p)
+#    print ("---------------")
+#write_paragraphs_to_csv(text, "paragraphs.csv")
+articles = split_into_articles(text)
+for a in articles:
+    print (a)
+    print ("---------------")
+#articles_dict = split_articles_into_paragraphs(articles)
+#for key in articles_dict:
+#    print (key)
+#    print ("-------------------------")
+#    for paragraph in articles_dict[key]:
+#        print (paragraph)
+#        print ("-------------------------")
 
-#text = read_pdf_to_text('Poland_Penal_Code.pdf')
+#########################################
 #sentence = [pair[1] for pair in pred3]
 #print (evaluate_sentence(sentence[0], sentence[1], 3))
 #count = len(sentence_tokenization(text))

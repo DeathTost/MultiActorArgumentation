@@ -39,6 +39,7 @@ namespace MultiActorArgumentation.Argumentation
             CreateProsecutorChildren(layersLeft);
             ForwardMessage();
             EvaluateNode();
+            WaitingTooLongForAnswer();
         }
 
         private void ForwardMessage()
@@ -54,10 +55,9 @@ namespace MultiActorArgumentation.Argumentation
         {
             Receive<ReceiveTimeout>((x) =>
             {
-                Console.WriteLine("Nothing is happening with me...");
                 if (!Answered)
                 {
-                    Console.WriteLine("I'm bored, goodbye");
+                    Console.WriteLine("Nothing is happening with me... I'm bored, goodbye");
                     Eval();
                 }
             });

@@ -9,6 +9,7 @@ namespace MultiActorArgumentation.Argumentation
         private IActorRef Prosecutor;
         private IActorRef Defender;
         private IActorRef Root;
+        private bool KilledAChild;
 
         public JudgeActor()
         {
@@ -99,6 +100,11 @@ namespace MultiActorArgumentation.Argumentation
         {
             Receive<RelatedArgumentsQueryMsg>((x) =>
             {
+                if (!KilledAChild && x.BlacklistedArguments.Count == 3)
+                {
+                    Context.System.Scheduler.ScheduleOnce(TimeSpan.FromSeconds(100), x.QuerySender, Kill.Instance);
+                    return;
+                }
                 Prosecutor.Tell(x);
                 Defender.Tell(x);
             });

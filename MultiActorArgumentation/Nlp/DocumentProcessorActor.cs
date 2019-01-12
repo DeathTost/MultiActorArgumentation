@@ -38,6 +38,9 @@ namespace MultiActorArgumentation.Nlp
                     converter.Add(new FloatType());
                     converter.Add(new StringType());
                     var predicted_paragraphs = pythonDataClassification.predict_arguments(trainedModel, paragraphs);
+                    var testLabels = pythonDataLoader.read_labels_of_paragraphs(path + x.TrainingDataName);
+                    var predictedLabels = pythonDataLoader.get_labels(predicted_paragraphs);
+                    pythonDataClassification.display_metrics(testLabels, predictedLabels);
                     List<object> positive_paragraphs = converter.ToClr(pythonDataClassification.get_positive_paragraphs(predicted_paragraphs));
                     List<object> negative_paragraphs = converter.ToClr(pythonDataClassification.get_negative_paragraphs(predicted_paragraphs));
                    
@@ -65,36 +68,38 @@ namespace MultiActorArgumentation.Nlp
                     {
                         Console.WriteLine($"{x.ModelName} loaded");
                         trainedModel = pythonDataLoader.load_model(path + x.ModelName);
-                        Self.Tell(new PredictParagraphsMsg(x.FileName));
+                        Self.Tell(new PredictParagraphsMsg(x.FileName, x.TrainingDataName));
                     }
                     else
                     {
                         if (System.IO.File.Exists(path + x.TrainingDataName))
                         {
-                            var trainingData = pythonDataLoader.read_text_of_paragraphs(path + x.TrainingDataName);
-                            var labels = pythonDataLoader.read_labels_of_paragraphs(path + x.TrainingDataName);
+                            var trainingData = pythonDataLoader.randomize_training_paragraphs(path + x.TrainingDataName, 60, 20, 60);
+                            var trainingText = pythonDataLoader.get_training_data(trainingData);
+                            var labels = pythonDataLoader.get_labels(trainingData);
+
                             if (x.ModelName == "svm_model")
                             {
                                 Console.WriteLine("SVM model chosen");
-                                trainedModel = pythonDataClassification.build_SVM(trainingData, labels);            
+                                trainedModel = pythonDataClassification.build_SVM(trainingText, labels);            
                             }
                             else if (x.ModelName == "bayes_model")
                             {
                                 Console.WriteLine("NaiveBayes model chosen");
-                                trainedModel = pythonDataClassification.build_MultinomialNB(trainingData, labels);
+                                trainedModel = pythonDataClassification.build_MultinomialNB(trainingText, labels);
                             }
                             else if (x.ModelName == "rf_model")
                             {
                                 Console.WriteLine("RandomForest model chosen");
-                                trainedModel = pythonDataClassification.build_RandomForest(trainingData, labels);
+                                trainedModel = pythonDataClassification.build_RandomForest(trainingText, labels);
                             }
                             else
                             {
                                 Console.WriteLine("Default model (RandomForest) built");
-                                trainedModel = pythonDataClassification.build_RandomForest(trainingData, labels);
+                                trainedModel = pythonDataClassification.build_RandomForest(trainingText, labels);
                             }
                             pythonDataLoader.save_model(trainedModel, path + x.ModelName);
-                            Self.Tell(new PredictParagraphsMsg(x.FileName));
+                            Self.Tell(new PredictParagraphsMsg(x.FileName, x.TrainingDataName));
                         }
                         else
                         {

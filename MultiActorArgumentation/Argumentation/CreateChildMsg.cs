@@ -111,12 +111,14 @@ namespace MultiActorArgumentation.Argumentation
 
     public class PredictParagraphsMsg
     {
-        public PredictParagraphsMsg(string fileName)
+        public PredictParagraphsMsg(string fileName, string trainingDataName)
         {
             FileName = fileName;
+            TrainingDataName = trainingDataName;
         }
 
         public string FileName { get; private set; }
+        public string TrainingDataName { get; private set; }
     }
 
     public class ReturnParagraphsMsg

@@ -94,6 +94,42 @@ def split_articles_into_paragraphs(articles):
                 articles_dict[article_name] = article_content
     return articles_dict
 
+def randomize_training_paragraphs(file, nonImportantCount, positiveCount, negativeCount):
+    paragraph_tuples = read_paragraphs_from_csv(file)
+    shuffle(paragraph_tuples)
+    samples_to_fit = []
+    unimportant_samples = []
+    positive_samples = []
+    negative_samples = []
+    for (label, text) in paragraph_tuples:
+        if label == '0' and len(unimportant_samples) < nonImportantCount:
+            unimportant_samples.append((label, text))
+            samples_to_fit.append((label, text))
+        elif label == '1' and len(positive_samples) < positiveCount:
+            positive_samples.append((label, text))
+            samples_to_fit.append((label, text))
+        elif label == '2' and len(negative_samples) < negativeCount:
+            negative_samples.append((label, text))
+            samples_to_fit.append((label, text))
+
+    return samples_to_fit
+
+def get_training_data(samples_to_fit):
+    paragraphs_to_fit = []
+    labels_to_fit = []
+    for (l, p) in samples_to_fit:
+        paragraphs_to_fit.append(p)
+        labels_to_fit.append(l)
+    return paragraphs_to_fit
+
+def get_labels(samples_to_fit):
+    paragraphs_to_fit = []
+    labels_to_fit = []
+    for (l, p) in samples_to_fit:
+        paragraphs_to_fit.append(p)
+        labels_to_fit.append(l)
+    return labels_to_fit
+
 
 #labels = LabelEncoder()
 #y = labels.fit_transform(["pos","neg"])

@@ -2,6 +2,10 @@ import csv
 import pickle
 from PyPDF2 import PdfFileReader
 import re
+from data_classifiers import build_RandomForest
+from data_classifiers import encode_labels
+from data_processing import sentence_tokenization
+from random import shuffle
 
 def read_pdf_to_text(pdf_path):
     pdf_file = open(pdf_path, 'rb')
@@ -97,31 +101,73 @@ def split_articles_into_paragraphs(articles):
 #save_model(model)
 #pred = model.predict(["John got a new job."])
 #pred3 = predict_arguments(model, ["John got a new job.", "Alice is poor."])
-#######################
-#text = read_pdf_to_text('Poland_Penal_Code.pdf')
-paragraphs = read_labels_of_paragraphs("paragraphs_labeled.csv")
-print (paragraphs)
-for p in paragraphs:
-    print (p)
-#print (text)
-#paras = split_into_paragraphs(text)
-#for p in paras:
-#    print (p)
-#    print ("---------------")
-#write_paragraphs_to_csv(text, "paragraphs.csv")
-#articles = split_into_articles(text)
-#for a in articles:
-#    print (a)
-#    print ("---------------")
-#articles_dict = split_articles_into_paragraphs(articles)
-#for key in articles_dict:
-#    print (key)
-#    print ("-------------------------")
-#    for paragraph in articles_dict[key]:
-#        print (paragraph)
-#        print ("-------------------------")
+##################classification test #################
 
-#########################################
+paragraph_tuples = read_paragraphs_from_csv("paragraphs_labeled.csv")
+shuffle(paragraph_tuples)
+
+unimportant_samples = []
+positive_samples = []
+negative_samples = []
+samples_to_test = []
+for (label,text) in paragraph_tuples:
+    if label == '0' and len(unimportant_samples) < 260:
+        unimportant_samples.append((label,text))
+    elif label == '1' and len(positive_samples) < 20:
+        positive_samples.append((label,text))
+    elif label == '2' and len(negative_samples) < 200:
+        negative_samples.append((label,text))
+    else:
+        samples_to_test.append((label,text))
+    
+samples_to_fit = unimportant_samples + positive_samples + negative_samples
+paragraphs_to_fit = []
+labels_to_fit = []
+for (l,p) in samples_to_fit:
+    paragraphs_to_fit.append(p)
+    labels_to_fit.append(l)
+
+paragraphs_to_test = []
+labels_to_test = []
+for (l,p) in samples_to_test:
+    paragraphs_to_test.append(p)
+    labels_to_test.append(l)
+
+model = build_RandomForest(paragraphs_to_fit, labels_to_fit)
+
+count_predicted_correct_0 = 0
+count_predicted_correct_1 = 0
+count_predicted_correct_2 = 0
+
+count_predicted_wrong_0 = 0
+count_predicted_wrong_1 = 0
+count_predicted_wrong_2 = 0
+
+for i in range(len(paragraphs_to_test)):
+    predicted = model.predict([paragraphs_to_test[i]])
+    l = labels_to_test[i]
+    print (l,"   ", predicted)
+    if l == '0':
+        if l == predicted:
+           count_predicted_correct_0 = count_predicted_correct_0 + 1
+        else:
+            count_predicted_wrong_0 = count_predicted_wrong_0 + 1
+    if l == '1':
+        if l == predicted:
+           count_predicted_correct_1 = count_predicted_correct_1 + 1
+        else:
+            count_predicted_wrong_1 = count_predicted_wrong_1 + 1
+        
+    if l == '2':
+        if l == predicted:
+           count_predicted_correct_2 = count_predicted_correct_2 + 1
+        else:
+            count_predicted_wrong_2 = count_predicted_wrong_2 + 1
+print ("\t unimp.  pos. \t neg.")
+print ("correct\t", count_predicted_correct_0, "\t", count_predicted_correct_1, "\t", count_predicted_correct_2)
+print ("wrong\t", count_predicted_wrong_0, "\t", count_predicted_wrong_1, "\t", count_predicted_wrong_2)
+
+#######################################################
 #sentence = [pair[1] for pair in pred3]
 #print (evaluate_sentence(sentence[0], sentence[1], 3))
 #count = len(sentence_tokenization(text))

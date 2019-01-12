@@ -94,4 +94,40 @@ namespace MultiActorArgumentation.Argumentation
         public int Argument { get; private set; }
         public bool Active { get; private set; }
     }
+
+    public class LoadModelMsg
+    {
+        public LoadModelMsg(string modelName, string fileName = "Poland_Penal_Code.pdf", string trainingDataName = "paragraphs_labeled.csv")
+        {
+            ModelName = modelName;
+            FileName = fileName;
+            TrainingDataName = trainingDataName;
+        }
+
+        public string ModelName { get; private set; }
+        public string FileName { get; private set; }
+        public string TrainingDataName { get; private set; }
+    }
+
+    public class PredictParagraphsMsg
+    {
+        public PredictParagraphsMsg(string fileName)
+        {
+            FileName = fileName;
+        }
+
+        public string FileName { get; private set; }
+    }
+
+    public class ReturnParagraphsMsg
+    {
+        public ReturnParagraphsMsg(IReadOnlyList<object> positives, IReadOnlyList<object> negatives)
+        {
+            PositiveParagraphs = positives;
+            NegativeParagraphs = negatives;
+        }
+
+        public IReadOnlyList<object> PositiveParagraphs { get; private set; }
+        public IReadOnlyList<object> NegativeParagraphs { get; private set; }
+    }
 }

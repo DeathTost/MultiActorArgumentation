@@ -34,7 +34,7 @@ class NLTKPreprocessor(BaseEstimator, TransformerMixin):
 
     def tokenize(self, document):
         # Break the document into sentences
-        for sent in sent_tokenize(document):
+        for sent in sent_tokenize(document[2:]):
             # Break the sentence into part of speech tagged tokens
             for token, tag in pos_tag(wordpunct_tokenize(sent)):
                 # Apply preprocessing to the token
@@ -140,13 +140,21 @@ def cosine_similarity_ngrams(a, b):
     return float(numerator) / denominator
 
 def evaluate_sentence(pattern, test, n):
-    pattern_tokens = cleanup(word_tokenization(pattern))
-    test_tokens = cleanup(word_tokenization(test))
-
+    pattern_tokens = lemmatization(pos_tagging(cleanup(word_tokenization(pattern))))
+    pattern_tokens = [text for (text, label) in pattern_tokens if text not in string.punctuation]
+    test_tokens = lemmatization(pos_tagging(cleanup(word_tokenization(test))))
+    test_tokens= [text for (text, label) in test_tokens if text not in string.punctuation]
     score = []
     for i in range (1,n+1):
-        patern_ngrams = get_ngrams(pattern_tokens, i)
+        pattern_ngrams = get_ngrams(pattern_tokens, i)
         test_ngrams = get_ngrams(test_tokens, i)
-        score.append((i, jaccard_distance(patern_ngrams, test_ngrams)))
+        score.append(jaccard_distance(pattern_ngrams, test_ngrams))
 
     return score
+
+def evaluate_sentences(pattern_sentences, test_sentences, n):
+    result = []
+    for pattern in pattern_sentences:
+        for test in test_sentences:
+            result.append(evaluate_sentence(pattern, test, n))
+    return result

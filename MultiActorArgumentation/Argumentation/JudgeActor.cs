@@ -51,7 +51,7 @@ namespace MultiActorArgumentation.Argumentation
                 var argumentationPath = Console.ReadLine();
 
                 Self.Tell(new StartArgumentationTreeMsg());
-                Context.System.Scheduler.ScheduleOnce(TimeSpan.FromSeconds(100), Prosecutor, Kill.Instance);
+                //Context.System.Scheduler.ScheduleOnce(TimeSpan.FromSeconds(100), Prosecutor, Kill.Instance);
             });
         }
 
@@ -96,7 +96,9 @@ namespace MultiActorArgumentation.Argumentation
             {
                 if (!KilledAChild && x.BlacklistedArguments.Count == 3)
                 {
+                    Console.WriteLine("I killed a child and I liked it");
                     Context.System.Scheduler.ScheduleOnce(TimeSpan.FromSeconds(100), x.QuerySender, Kill.Instance);
+                    KilledAChild = true;
                     return;
                 }
                 Prosecutor.Tell(x);

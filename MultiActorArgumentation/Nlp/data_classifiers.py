@@ -5,6 +5,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import SGDClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import confusion_matrix
+from sklearn import metrics
 
 def identity(arg):
     return arg
@@ -41,4 +43,21 @@ def build_RandomForest(X, y=None):
 
 def build_SVM(X, y=None):
     return build(SGDClassifier(), X, y)
+	
+def display_metrics(test_labels, predicted_labels):
+    print(confusion_matrix(test_labels, predicted_labels))
+    print(metrics.classification_report(test_labels, predicted_labels))	
 
+def get_positive_paragraphs(paragraphs):
+    result = []
+    for label, paragraph in paragraphs:
+        if label == '1':
+            result.append(paragraph)
+    return result
+
+def get_negative_paragraphs(paragraphs):
+    result = []
+    for label, paragraph in paragraphs:
+        if label == '2':
+            result.append(paragraph)
+    return result

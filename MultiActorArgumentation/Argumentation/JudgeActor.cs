@@ -1,5 +1,6 @@
 ﻿using Akka.Actor;
 using System;
+using System.Collections.Generic;
 
 namespace MultiActorArgumentation.Argumentation
 {
@@ -12,16 +13,21 @@ namespace MultiActorArgumentation.Argumentation
 
         public JudgeActor()
         {
+            CreateProsecutorAndDefender();
             ReceiveUserInput();
             StartArgumentation();
             ArgumentRedirection();
             EndArgumentation();
         }
 
-        protected override void PreStart()
+        private void CreateProsecutorAndDefender()
         {
-            Prosecutor = Context.ActorOf(Props.Create(() => new ProsecutorActor()), "ProsecutorActor");
-            Defender = Context.ActorOf(Props.Create(() => new DefenderActor()), "DefenderActor");
+            Receive<ReturnParagraphsMsg>((x) =>
+            {
+                Prosecutor = Context.ActorOf(Props.Create(() => new ProsecutorActor(x.NegativeParagraphs)), "ProsecutorActor");
+                Defender = Context.ActorOf(Props.Create(() => new DefenderActor(x.PositiveParagraphs)), "DefenderActor");
+                Self.Tell(new UserInputMsg());
+            });
         }
 
         protected override SupervisorStrategy SupervisorStrategy()

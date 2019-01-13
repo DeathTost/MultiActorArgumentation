@@ -1,6 +1,7 @@
 ﻿using Akka.Actor;
 using MultiActorArgumentation.Argumentation;
 using MultiActorArgumentation.Nlp;
+using Python.Runtime;
 
 namespace MultiActorArgumentation
 {
@@ -10,12 +11,14 @@ namespace MultiActorArgumentation
         {
             using (var argumentationSystem = ActorSystem.Create("ArgumentationSystem"))
             {
-                var docProcessor = argumentationSystem.ActorOf(Props.Create(() => new DocumentProcessorActor()), "DocProcessor");
+                PythonEngine.Initialize();
+                PythonEngine.BeginAllowThreads();
                 var judge = argumentationSystem.ActorOf(Props.Create(() => new JudgeActor()), "Judge");
+                var docProcessor = argumentationSystem.ActorOf(Props.Create(() => new DocumentProcessorActor(judge)), "DocProcessor");
 
-                //docProcessor.Tell("message");
-                //judge.Tell(new CreateChildMsg("SomeMessage"));
-                judge.Tell(new UserInputMsg());
+                System.Console.WriteLine("Choose prediction model <rf_model>|<bayes_model>|<svm_model>:");
+                string modelName = System.Console.ReadLine();
+                docProcessor.Tell(new LoadModelMsg(modelName));//"rf_model"
                 argumentationSystem.WhenTerminated.Wait();
             }
         }

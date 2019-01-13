@@ -1,4 +1,5 @@
 ﻿using Akka.Actor;
+using MultiActorArgumentation.Argumentation;
 using Python.Runtime;
 using System;
 using System.Collections.Generic;
@@ -9,58 +10,52 @@ namespace MultiActorArgumentation.Nlp
     public class DocumentProcessorActor : ReceiveActor
     {
         private PyObject trainedModel;
+        private IActorRef judge;
 
-        public DocumentProcessorActor()
+        public DocumentProcessorActor(IActorRef actor)
         {
-            Receive<string>((x) => 
-            {
-                //requires installing pythonnet in Python site-packages (pip install pythonnet)
-                //Debugger needs to be set to x64
-                //Py.Import works weird, temporary solution - copy your python files to bin/debug folder because file needs to be in the same place as .exe and .dlls
-                //converter python to .Net is working so current idea:
-                // 1. get path to file in C#
-                // 2. run python script with NLP and training model
-                // 3. return model to C# (only for storage, we will pass it to python when it is needed)
-                // 4. get user input in c# and run python again to classify our arguments
-                // 5. get the results from python and convert them to C# for better interpretation
-                // that means that we are working on data only in python, but input and output is processed in C#
-                using (Py.GIL())
-                {
-                    try
-                    {
-                        dynamic a = Py.Import("data_loader");
-                        var path = System.IO.Path.GetFullPath("...\\...\\...\\Nlp\\Poland_Penal_Code.pdf");
-                        PyObject result = a.read_pdf_to_text(path);
-
-                        var converter = new PyConverter();
-                        converter.AddListType();
-                        converter.Add(new Int32Type());
-                        converter.Add(new Int64Type());
-                        converter.Add(new StringType());
-                        converter.AddDictType<string, object>();
-
-                        string answer = (string)converter.ToClr(result);
-                        Console.WriteLine(answer);
-                        //Console.WriteLine((answer.First() as Dictionary<string, object>).First().Key);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.Message);
-                    }
-                }
-
-                Self.Tell(new LoadModelMsg("rf_model", "Poland_Penal_Code.pdf"));
-            });
-            LoadModel();
+            judge = actor;
+            LoadOrCreateModel();
+            PredictParagraphs();
         }
 
-        private void LoadModel()
+        private void PredictParagraphs()
+        {
+            Receive<PredictParagraphsMsg>((x) =>
+            {
+                using (Py.GIL())
+                {
+                    var path = System.IO.Path.GetFullPath("...\\...\\...\\Nlp\\");
+                    dynamic pythonDataLoader = Py.Import("data_loader");
+                    var paragraphs = pythonDataLoader.split_into_paragraphs(pythonDataLoader.read_pdf_to_text(path + x.FileName));
+                    dynamic pythonDataClassification = Py.Import("data_classifiers");
+
+                    var converter = new PyConverter();
+                    converter.AddListType();
+                    converter.Add(new Int32Type());
+                    converter.Add(new Int64Type());
+                    converter.Add(new DoubleType());
+                    converter.Add(new FloatType());
+                    converter.Add(new StringType());
+                    var predicted_paragraphs = pythonDataClassification.predict_arguments(trainedModel, paragraphs);
+                    var testLabels = pythonDataLoader.read_labels_of_paragraphs(path + x.TrainingDataName);
+                    var predictedLabels = pythonDataLoader.get_labels(predicted_paragraphs);
+                    pythonDataClassification.display_metrics(testLabels, predictedLabels);
+                    List<object> positive_paragraphs = converter.ToClr(pythonDataClassification.get_positive_paragraphs(predicted_paragraphs));
+                    List<object> negative_paragraphs = converter.ToClr(pythonDataClassification.get_negative_paragraphs(predicted_paragraphs));
+                   
+                    judge.Tell(new ReturnParagraphsMsg(positive_paragraphs, negative_paragraphs));
+                }
+            });
+        }
+
+        private void LoadOrCreateModel()
         {
             Receive<LoadModelMsg>((x) =>
             {
                 if (string.IsNullOrEmpty(x.FileName))
                 {
-                    Console.WriteLine("Empty file name.");
+                    Console.WriteLine("No legislation file name given.");
                     return;
                 }
                 using (Py.GIL())
@@ -71,35 +66,48 @@ namespace MultiActorArgumentation.Nlp
                     dynamic pythonDataClassification = Py.Import("data_classifiers");
                     if (System.IO.File.Exists(path + x.ModelName))
                     {
+                        Console.WriteLine($"{x.ModelName} loaded");
                         trainedModel = pythonDataLoader.load_model(path + x.ModelName);
+                        Self.Tell(new PredictParagraphsMsg(x.FileName, x.TrainingDataName));
                     }
                     else
                     {
-                        if (System.IO.File.Exists(path + x.FileName))
+                        if (System.IO.File.Exists(path + x.TrainingDataName))
                         {
-                            //PyObject data = pythonDataLoader.read_pdf_to_text(path + x.FileName);
-                            trainedModel = pythonDataClassification.build_RandomForest(pythonDataLoader.read_text_of_paragraphs(x.FileName), pythonDataLoader.read_labels_of_paragraphs(x.FileName));
+                            var trainingData = pythonDataLoader.randomize_training_paragraphs(path + x.TrainingDataName, 60, 20, 60);
+                            var trainingText = pythonDataLoader.get_training_data(trainingData);
+                            var labels = pythonDataLoader.get_labels(trainingData);
+
+                            if (x.ModelName == "svm_model")
+                            {
+                                Console.WriteLine("SVM model chosen");
+                                trainedModel = pythonDataClassification.build_SVM(trainingText, labels);            
+                            }
+                            else if (x.ModelName == "bayes_model")
+                            {
+                                Console.WriteLine("NaiveBayes model chosen");
+                                trainedModel = pythonDataClassification.build_MultinomialNB(trainingText, labels);
+                            }
+                            else if (x.ModelName == "rf_model")
+                            {
+                                Console.WriteLine("RandomForest model chosen");
+                                trainedModel = pythonDataClassification.build_RandomForest(trainingText, labels);
+                            }
+                            else
+                            {
+                                Console.WriteLine("Default model (RandomForest) built");
+                                trainedModel = pythonDataClassification.build_RandomForest(trainingText, labels);
+                            }
                             pythonDataLoader.save_model(trainedModel, path + x.ModelName);
+                            Self.Tell(new PredictParagraphsMsg(x.FileName, x.TrainingDataName));
                         }
                         else
                         {
-                            Console.WriteLine("No file found.");
+                            Console.WriteLine("No training data found.");
                         }
                     }
                 }
             });
         }
-    }
-
-    public class LoadModelMsg
-    {
-        public LoadModelMsg(string modelName, string fileName)
-        {
-            ModelName = modelName;
-            FileName = fileName;
-        }
-
-        public string ModelName { get; private set; }
-        public string FileName { get; private set; }
     }
 }

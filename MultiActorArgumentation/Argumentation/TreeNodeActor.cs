@@ -127,8 +127,8 @@ namespace MultiActorArgumentation.Argumentation
                     if (DefenderChildren.Keys.Contains(x.Argument)) EvaluationValue--;
                 }
 
-                if (ProsecutorResponseCounter == ProsecutorChildren.Count
-                    && DefenderResponseCounter == DefenderChildren.Count
+                if (ProsecutorResponseCounter >= ProsecutorChildren.Count
+                    && DefenderResponseCounter >= DefenderChildren.Count
                     && DefenderAnswered && ProsecutorAnswered)
                 {
                     Eval();
@@ -162,6 +162,7 @@ namespace MultiActorArgumentation.Argumentation
         {
             Context.Parent.Tell(new NodeResultMsg(Argument, active));
             Answered = true;
+            Context.Stop(Self);
         }
 
         private void Eval()

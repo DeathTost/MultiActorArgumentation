@@ -15,6 +15,7 @@ namespace MultiActorArgumentation.Argumentation
         public DefenderActor(IReadOnlyList<object> paragraphs)
         {
             MapParagraphs(paragraphs);
+            TellRelatedParagraphs();
         }
 
         private void MapParagraphs(IReadOnlyList<object> paragraphs)
@@ -55,7 +56,6 @@ namespace MultiActorArgumentation.Argumentation
                             resultList.Add(paragraph);
                         }
                     }
-                    Console.WriteLine("DEFENDER ZYJE");
                     x.QuerySender.Tell(new RelatedArgumentsDefenderResponseMsg(DefArgs.Where((e) => !x.BlacklistedArguments.Contains(e)).ToList()));
                 }
             });

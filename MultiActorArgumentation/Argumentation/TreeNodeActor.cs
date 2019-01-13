@@ -6,10 +6,11 @@ namespace MultiActorArgumentation.Argumentation
 {
     public class TreeNodeActor : ReceiveActor
     {
-        private int Argument;
+        private string Argument;
+        private int Turn;
 
-        private IDictionary<int, IActorRef> ProsecutorChildren = new Dictionary<int, IActorRef>();
-        private IDictionary<int, IActorRef> DefenderChildren = new Dictionary<int, IActorRef>();
+        private IDictionary<string, IActorRef> ProsecutorChildren = new Dictionary<string, IActorRef>();
+        private IDictionary<string, IActorRef> DefenderChildren = new Dictionary<string, IActorRef>();
         private int ProsecutorResponseCounter = 0;
         private int DefenderResponseCounter = 0;
 
@@ -20,10 +21,11 @@ namespace MultiActorArgumentation.Argumentation
         // mock for deciding what to do with node
         private int EvaluationValue = 0;
 
-        public TreeNodeActor(int argument, int layersLeft)
+        public TreeNodeActor(string argument,int turn, int layersLeft)
         {
             Argument = argument;
-            this.SetReceiveTimeout(TimeSpan.FromSeconds(3));
+            Turn = turn;
+            this.SetReceiveTimeout(TimeSpan.FromSeconds(10 * (layersLeft+1)));
             System.Console.WriteLine(Context.Self.Path);
             if (layersLeft != 0)
             {
@@ -67,17 +69,19 @@ namespace MultiActorArgumentation.Argumentation
         {
             Receive<RelatedArgumentsDefenderResponseMsg>((x) =>
             {
-                Console.WriteLine("Creating Defender children");
+                Console.WriteLine($"Creating {x.RelatedArguments.Count} Defender children");
+                var i = 0;
                 foreach (var id in x.RelatedArguments)
                 {
-                    var child = Context.ActorOf(Props.Create(() => new TreeNodeActor(id, layersLeft - 1)), "argument" + id);
+                    var child = Context.ActorOf(Props.Create(() => new TreeNodeActor(id, -1, layersLeft - 1)), "argument"+layersLeft+"DEF" + i);
                     DefenderChildren.Add(id, child);
+                    i++;
                 }
                 DefenderAnswered = true;
                 if (DefenderAnswered && ProsecutorAnswered && DefenderChildren.Count == 0 && ProsecutorChildren.Count == 0)
                 {
                     System.Console.WriteLine("Got no arguments from Prosecutor and Defender");
-                Answer(Argument);
+                    Answer(Argument);
                 }
             });
         }
@@ -86,17 +90,19 @@ namespace MultiActorArgumentation.Argumentation
         {
             Receive<RelatedArgumentsProsecutorResponseMsg>((x) =>
             {
-                Console.WriteLine("Creating Defender children");
+                Console.WriteLine("Creating Prosecutor children");
+                var i = 0;
                 foreach (var id in x.RelatedArguments)
                 {
-                    var child = Context.ActorOf(Props.Create(() => new TreeNodeActor(id, layersLeft - 1)), "argument" + id);
+                    var child = Context.ActorOf(Props.Create(() => new TreeNodeActor(id, 1, layersLeft - 1)), "argument" + layersLeft + "PRO" + i);
                     ProsecutorChildren.Add(id, child);
+                    i++;
                 }
                 ProsecutorAnswered = true;
                 if (DefenderAnswered && ProsecutorAnswered && DefenderChildren.Count == 0 && ProsecutorChildren.Count == 0)
                 {
                     System.Console.WriteLine("Got no arguments from Prosecutor and Defender");
-                Answer(Argument);
+                    Answer(Argument);
                 }
             });
         }
@@ -115,10 +121,15 @@ namespace MultiActorArgumentation.Argumentation
                     DefenderResponseCounter++;
                 }
 
-                if (x.Active) EvaluationValue += x.Argument;
+                if (x.Active)
+                {
+                    if (ProsecutorChildren.Keys.Contains(x.Argument)) EvaluationValue++;
+                    if (DefenderChildren.Keys.Contains(x.Argument)) EvaluationValue--;
+                }
 
                 if (ProsecutorResponseCounter == ProsecutorChildren.Count
-                    && DefenderResponseCounter == DefenderChildren.Count)
+                    && DefenderResponseCounter == DefenderChildren.Count
+                    && DefenderAnswered && ProsecutorAnswered)
                 {
                     Eval();
                 }
@@ -147,7 +158,7 @@ namespace MultiActorArgumentation.Argumentation
             Console.WriteLine($"{Self.Path} was killed!");
         }
 
-        private void Answer(int argument, bool active = true)
+        private void Answer(string argument, bool active = true)
         {
             Context.Parent.Tell(new NodeResultMsg(Argument, active));
             Answered = true;
@@ -155,7 +166,7 @@ namespace MultiActorArgumentation.Argumentation
 
         private void Eval()
         {
-            if (Argument * EvaluationValue >= 0)
+            if (Turn * EvaluationValue >= 0)
             {
                 System.Console.WriteLine("Evaluated to be active");
                 Answer(Argument);

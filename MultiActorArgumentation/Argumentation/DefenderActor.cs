@@ -8,7 +8,7 @@ namespace MultiActorArgumentation.Argumentation
 {
     public class DefenderActor : ReceiveActor
     {
-        private IList<int> DefArgs = new List<int>(new int[] { -1, -2, -3, -4 });
+        private IList<string> DefArgs = new List<string>(new string[] { "-1", "-2", "-3", "-4" });
         private IList<string> positiveParagraphs;
         private double threshold = 0.5;
 
@@ -55,6 +55,7 @@ namespace MultiActorArgumentation.Argumentation
                             resultList.Add(paragraph);
                         }
                     }
+                    Console.WriteLine("DEFENDER ZYJE");
                     x.QuerySender.Tell(new RelatedArgumentsDefenderResponseMsg(DefArgs.Where((e) => !x.BlacklistedArguments.Contains(e)).ToList()));
                 }
             });

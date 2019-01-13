@@ -19,7 +19,7 @@ namespace MultiActorArgumentation.Argumentation
         public TreeRootActor(IReadOnlyList<string> arguments)
         {
             caseArguments = arguments;
-            this.SetReceiveTimeout(TimeSpan.FromSeconds(10000));
+            this.SetReceiveTimeout(TimeSpan.FromSeconds(1000));
             StartArgumentation();
             ForwardArguments();
             EndArgumentation();
@@ -33,7 +33,7 @@ namespace MultiActorArgumentation.Argumentation
                 int i = 0;
                 foreach (var argument in caseArguments)
                 {
-                    caseBranches.Add(Context.ActorOf(Props.Create(() => new TreeNodeActor(argument, 0, 3)), "case"+i));
+                    caseBranches.Add(Context.ActorOf(Props.Create(() => new TreeNodeActor(argument, -1, 3)), "case"+i));
                     i++;
                     resolvedCases.Add(argument, false);
                     finishedCases.Add(argument, false);

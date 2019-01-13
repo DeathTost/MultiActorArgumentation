@@ -55,7 +55,11 @@ namespace MultiActorArgumentation.Argumentation
                         {
                             threshold = value;
                             resultList.Add(paragraph);
-                        }                       
+                        }
+                        if (resultList.Count > 5)
+                        {
+                            break;
+                        }
                     }
 
                     x.QuerySender.Tell(new RelatedArgumentsProsecutorResponseMsg(resultList));

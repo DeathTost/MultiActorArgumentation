@@ -17,6 +17,7 @@ namespace MultiActorArgumentation.Argumentation
         private bool ProsecutorAnswered = false;
         private bool DefenderAnswered = false;
         private bool Answered = false;
+        private bool isBored = false;
 
         // mock for deciding what to do with node
         private int EvaluationValue = 0;
@@ -26,14 +27,13 @@ namespace MultiActorArgumentation.Argumentation
             Argument = argument;
             Turn = turn;
             this.SetReceiveTimeout(TimeSpan.FromSeconds(10 * (layersLeft+1)));
-            System.Console.WriteLine(Context.Self.Path);
             if (layersLeft != 0)
             {
                 Context.Parent.Tell(new RelatedArgumentsQueryMsg(argument, Context.Self));
             }
             else
             {
-                System.Console.WriteLine($"{layersLeft} is 0. No new children.");
+                //System.Console.WriteLine($"{layersLeft} is 0. No new children.");
                 Answer(argument);
             }
 
@@ -48,7 +48,6 @@ namespace MultiActorArgumentation.Argumentation
         {
             Receive<RelatedArgumentsQueryMsg>((x) =>
             {
-                Console.WriteLine("Passing message further");
                 Context.Parent.Tell(x.AppendArgument(Argument));
             });
         }
@@ -59,7 +58,7 @@ namespace MultiActorArgumentation.Argumentation
             {
                 if (!Answered)
                 {
-                    Console.WriteLine("Nothing is happening with me... I'm bored, goodbye");
+                    isBored = true;
                     Eval();
                 }
             });
@@ -80,7 +79,6 @@ namespace MultiActorArgumentation.Argumentation
                 DefenderAnswered = true;
                 if (DefenderAnswered && ProsecutorAnswered && DefenderChildren.Count == 0 && ProsecutorChildren.Count == 0)
                 {
-                    System.Console.WriteLine("Got no arguments from Prosecutor and Defender");
                     Answer(Argument);
                 }
             });
@@ -101,7 +99,6 @@ namespace MultiActorArgumentation.Argumentation
                 ProsecutorAnswered = true;
                 if (DefenderAnswered && ProsecutorAnswered && DefenderChildren.Count == 0 && ProsecutorChildren.Count == 0)
                 {
-                    System.Console.WriteLine("Got no arguments from Prosecutor and Defender");
                     Answer(Argument);
                 }
             });
@@ -111,7 +108,6 @@ namespace MultiActorArgumentation.Argumentation
         {
             Receive<NodeResultMsg>((x) =>
             {
-                Console.WriteLine("Got response from child");
                 if (ProsecutorChildren.ContainsKey(x.Argument))
                 {
                     ProsecutorResponseCounter++;
@@ -155,7 +151,19 @@ namespace MultiActorArgumentation.Argumentation
 
         protected override void PostStop()
         {
-            Console.WriteLine($"{Self.Path} was killed!");
+            if (isBored)
+            {
+                Console.WriteLine("Nothing is happening with me... I'm bored, goodbye");
+            }
+            else if (DefenderChildren.Count == 0 && ProsecutorChildren.Count == 0)
+            {
+                Console.WriteLine("Got no arguments from Prosecutor and Defender");
+            }
+            else
+            {
+                Console.WriteLine($"{Self.Path} was killed!");
+            }
+            
         }
 
         private void Answer(string argument, bool active = true)
@@ -169,12 +177,14 @@ namespace MultiActorArgumentation.Argumentation
         {
             if (Turn * EvaluationValue >= 0)
             {
-                System.Console.WriteLine("Evaluated to be active");
+                Console.WriteLine("[ATTACK]" + Argument);
+                //System.Console.WriteLine("Evaluated to be active");
                 Answer(Argument);
             }
             else
             {
-                System.Console.WriteLine("Evaluated to be disactivated");
+                Console.WriteLine("[DEFENSE]" + Argument);
+                //System.Console.WriteLine("Evaluated to be disactivated");
                 Answer(Argument, false);
             }
         }

@@ -192,6 +192,7 @@
     <Compile Include="Argumentation\JudgeActor.cs" />
     <Compile Include="Argumentation\ProsecutorActor.cs" />
     <Compile Include="Argumentation\TreeNodeActor.cs" />
+    <Compile Include="Argumentation\TreeRootActor.cs" />
     <Compile Include="Nlp\DocumentProcessorActor.cs" />
     <Compile Include="Nlp\PyConverter.cs" />
     <Compile Include="Program.cs" />
@@ -202,6 +203,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Argumentation\case_file.txt" />
     <Content Include="Nlp\data_loader.py" />
     <Content Include="Nlp\PythonExample.py" />
   </ItemGroup>

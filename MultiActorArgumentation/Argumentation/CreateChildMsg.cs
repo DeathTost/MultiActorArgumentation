@@ -1,5 +1,6 @@
 ﻿using Akka.Actor;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace MultiActorArgumentation.Argumentation
 {
@@ -25,18 +26,19 @@ namespace MultiActorArgumentation.Argumentation
     {
         public StartArgumentationTreeMsg()
         {
-
         }
     }
 
     public class EndArgumentationMsg
     {
-        public EndArgumentationMsg(string result)
+        public EndArgumentationMsg(IReadOnlyDictionary<string, bool> resolved, IReadOnlyDictionary<string, bool> finished)
         {
-            ArgumentationResult = result;
+            ResolvedCases = resolved;
+            FinishedCases = finished;
         }
 
-        public string ArgumentationResult { get; private set; }
+        public IReadOnlyDictionary<string, bool> ResolvedCases { get; private set; }
+        public IReadOnlyDictionary<string, bool> FinishedCases { get; private set; }
     }
 
     public class RelatedArgumentsQueryMsg

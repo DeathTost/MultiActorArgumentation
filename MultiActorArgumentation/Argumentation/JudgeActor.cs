@@ -15,9 +15,8 @@ namespace MultiActorArgumentation.Argumentation
         {
             CreateProsecutorAndDefender();
             ReceiveUserInput();
-            StartArgumentation();
             ArgumentRedirection();
-            EndArgumentation();
+            ArgumentationResult();
         }
 
         private void CreateProsecutorAndDefender()
@@ -53,45 +52,44 @@ namespace MultiActorArgumentation.Argumentation
             Receive<UserInputMsg>((_) =>
             {
                 Console.WriteLine("Judge has come!");
-                Console.WriteLine("Please provide a path to a file with your case.");
-                var argumentationPath = Console.ReadLine();
-
-                Self.Tell(new StartArgumentationTreeMsg());
+                Console.WriteLine("Please provide a path to a file with your case. <case_file.txt>");
+                var path = System.IO.Path.GetFullPath("...\\...\\...\\Argumentation\\");
+                var argumentationFile = Console.ReadLine();//case_file.txt
+                if (!System.IO.File.Exists(path + argumentationFile))
+                {
+                    Self.Tell(new UserInputMsg());
+                    return;
+                }
+                var caseArguments = new List<string>();
+                var lines = System.IO.File.ReadLines(path + argumentationFile);
+                foreach (var line in lines)
+                {
+                    caseArguments.Add(line);
+                }
+                Root = Context.ActorOf(Props.Create(() => new TreeRootActor(caseArguments)), "TreeRoot");
+                Root.Tell(new StartArgumentationTreeMsg());
                 //Context.System.Scheduler.ScheduleOnce(TimeSpan.FromSeconds(100), Prosecutor, Kill.Instance);
             });
         }
 
-        private void StartArgumentation()
-        {
-            Receive<StartArgumentationTreeMsg>((_) =>
-            {
-                Console.WriteLine($"Judge: {Self.Path}");
-                //for now starting with argument 1 
-                Root = Context.ActorOf(Props.Create(() => new TreeNodeActor("kappa",1,3)), "TreeRoot");
-            });
-        }
-
-        private void EndArgumentation()
+        private void ArgumentationResult()
         {
             Receive<EndArgumentationMsg>((x) =>
             {
-                Console.WriteLine($"Sender: {Sender.Path}");
-                Console.WriteLine(x.ArgumentationResult);
-                Console.WriteLine("Judge has left!");
-                Console.WriteLine("Case is closed!");
-            });
-
-            Receive<NodeResultMsg>((x) =>
-            {
-                Console.WriteLine("Case is closed!");
-                if (x.Active)
+                foreach (var resolvedCase in x.ResolvedCases)
                 {
-                    Console.WriteLine("Thesis has been proved!");
+                    var result = resolvedCase.Value ? " case proved" : " case defeated";
+                    var isFinished = x.FinishedCases[resolvedCase.Key];
+                    if (isFinished)
+                    {
+                        Console.WriteLine($"{resolvedCase.Key} | {result}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Case wasn't finished on time.");
+                    }
                 }
-                else
-                {
-                    Console.WriteLine("Thesis has been disproved!");
-                }
+                Console.WriteLine("Case is closed.");
                 Console.WriteLine("Judge has left!");
             });
         }
@@ -100,10 +98,11 @@ namespace MultiActorArgumentation.Argumentation
         {
             Receive<RelatedArgumentsQueryMsg>((x) =>
             {
-                if (!KilledAChild && x.BlacklistedArguments.Count == 2)
+                if (!KilledAChild && x.BlacklistedArguments.Count > 3)
                 {
                     Console.WriteLine("I killed a child and I liked it");
-                    Context.System.Scheduler.ScheduleOnce(TimeSpan.FromSeconds(100), x.QuerySender, Kill.Instance);
+                    x.QuerySender.Tell(Kill.Instance);
+                    //Context.System.Scheduler.ScheduleOnce(TimeSpan.FromSeconds(100), x.QuerySender, Kill.Instance);
                     KilledAChild = true;
                     return;
                 }

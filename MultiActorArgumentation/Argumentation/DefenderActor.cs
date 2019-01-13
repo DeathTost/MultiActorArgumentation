@@ -8,9 +8,8 @@ namespace MultiActorArgumentation.Argumentation
 {
     public class DefenderActor : ReceiveActor
     {
-        private IList<string> DefArgs = new List<string>(new string[] { "-1", "-2", "-3", "-4" });
         private IList<string> positiveParagraphs;
-        private double threshold = 0.5;
+        private double threshold = 0.05;
 
         public DefenderActor(IReadOnlyList<object> paragraphs)
         {
@@ -38,8 +37,8 @@ namespace MultiActorArgumentation.Argumentation
                     var converter = new PyConverter();
                     converter.AddListType();
                     converter.Add(new DoubleType());
-                    var argument = positiveParagraphs.First();//x.BlacklistedArguments.First()
-                    var paragraphsLeft = positiveParagraphs.Except(positiveParagraphs.Where(y => y.Contains("month")).ToList()/*x.BlacklistedArguments*/).ToList();
+                    var argument = x.BlacklistedArguments.First();
+                    var paragraphsLeft = positiveParagraphs.Except(x.BlacklistedArguments).ToList();
                     var resultList = new List<string>();
                     foreach (var paragraph in paragraphsLeft)
                     {
@@ -53,10 +52,11 @@ namespace MultiActorArgumentation.Argumentation
                         }
                         if (value > threshold)
                         {
+                            threshold = value;
                             resultList.Add(paragraph);
                         }
                     }
-                    x.QuerySender.Tell(new RelatedArgumentsDefenderResponseMsg(DefArgs.Where((e) => !x.BlacklistedArguments.Contains(e)).ToList()));
+                    x.QuerySender.Tell(new RelatedArgumentsDefenderResponseMsg(resultList));
                 }
             });
         }

@@ -8,14 +8,13 @@ namespace MultiActorArgumentation.Argumentation
 {
     public class ProsecutorActor : ReceiveActor
     {
-        private IList<string> ProsArgs = new List<string>(new string[] { "1", "4", "5", "6" });
-        private double threshold = 0.5;
+        private double threshold = 0.05;
         private IList<string> negativeParagraphs;
 
         public ProsecutorActor(IReadOnlyList<object> paragraphs)
         {
             MapParagraphs(paragraphs);
-            Self.Tell(new RelatedArgumentsQueryMsg("1", Context.Parent));
+            Self.Tell(new RelatedArgumentsQueryMsg(new List<string> { "dummy" }, Self));
             TellRelatedParagraphs();
         }
 
@@ -39,8 +38,8 @@ namespace MultiActorArgumentation.Argumentation
                     var converter = new PyConverter();
                     converter.AddListType();
                     converter.Add(new DoubleType());
-                    var argument = negativeParagraphs.First();//x.BlacklistedArguments.First()
-                    var paragraphsLeft = negativeParagraphs.Except(negativeParagraphs.Where(y => y.Contains("month")).ToList()/*x.BlacklistedArguments*/).ToList();
+                    var argument = x.BlacklistedArguments.First();
+                    var paragraphsLeft = negativeParagraphs.Except(x.BlacklistedArguments).ToList();
                     var resultList = new List<string>();
                     foreach (var paragraph in paragraphsLeft)
                     {
@@ -54,11 +53,12 @@ namespace MultiActorArgumentation.Argumentation
                         }
                         if (value > threshold)
                         {
+                            threshold = value;
                             resultList.Add(paragraph);
-                        }
+                        }                       
                     }
 
-                    x.QuerySender.Tell(new RelatedArgumentsProsecutorResponseMsg(ProsArgs.Where((e) => !x.BlacklistedArguments.Contains(e)).ToList()));
+                    x.QuerySender.Tell(new RelatedArgumentsProsecutorResponseMsg(resultList));
                 }      
             });
         }

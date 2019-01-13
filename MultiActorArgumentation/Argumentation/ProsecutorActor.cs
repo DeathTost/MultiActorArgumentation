@@ -8,14 +8,14 @@ namespace MultiActorArgumentation.Argumentation
 {
     public class ProsecutorActor : ReceiveActor
     {
-        private IList<int> ProsArgs = new List<int>(new int[] { 1, 4, 5, 6 });
+        private IList<string> ProsArgs = new List<string>(new string[] { "1", "4", "5", "6" });
         private double threshold = 0.5;
         private IList<string> negativeParagraphs;
 
         public ProsecutorActor(IReadOnlyList<object> paragraphs)
         {
             MapParagraphs(paragraphs);
-            Self.Tell(new RelatedArgumentsQueryMsg(1, Context.Parent));
+            Self.Tell(new RelatedArgumentsQueryMsg("1", Context.Parent));
             TellRelatedParagraphs();
         }
 
@@ -57,7 +57,7 @@ namespace MultiActorArgumentation.Argumentation
                             resultList.Add(paragraph);
                         }
                     }
-                    
+
                     x.QuerySender.Tell(new RelatedArgumentsProsecutorResponseMsg(ProsArgs.Where((e) => !x.BlacklistedArguments.Contains(e)).ToList()));
                 }      
             });

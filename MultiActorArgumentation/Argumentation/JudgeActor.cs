@@ -67,7 +67,7 @@ namespace MultiActorArgumentation.Argumentation
             {
                 Console.WriteLine($"Judge: {Self.Path}");
                 //for now starting with argument 1 
-                Root = Context.ActorOf(Props.Create(() => new TreeNodeActor(1,3)), "TreeRoot");
+                Root = Context.ActorOf(Props.Create(() => new TreeNodeActor("kappa",1,3)), "TreeRoot");
             });
         }
 

@@ -41,57 +41,57 @@ namespace MultiActorArgumentation.Argumentation
 
     public class RelatedArgumentsQueryMsg
     {
-        public RelatedArgumentsQueryMsg(int argument, IActorRef querySender)
+        public RelatedArgumentsQueryMsg(string argument, IActorRef querySender)
         {
-            var list = new List<int>();
+            var list = new List<string>();
             list.Add(argument);
             BlacklistedArguments = list;
             QuerySender = querySender;
         }
 
-        public RelatedArgumentsQueryMsg(IList<int> args, IActorRef querySender)
+        public RelatedArgumentsQueryMsg(IList<string> args, IActorRef querySender)
         {
-            BlacklistedArguments = new List<int>(args);
+            BlacklistedArguments = new List<string>(args);
             QuerySender = querySender;
         }
 
-        public RelatedArgumentsQueryMsg AppendArgument(int argument)
+        public RelatedArgumentsQueryMsg AppendArgument(string argument)
         {
-            var list = new List<int>(BlacklistedArguments);
+            var list = new List<string>(BlacklistedArguments);
             list.Add(argument);
             return new RelatedArgumentsQueryMsg(list, QuerySender);
         }
 
-        public IReadOnlyList<int> BlacklistedArguments { get; private set; }
+        public IReadOnlyList<string> BlacklistedArguments { get; private set; }
         public IActorRef QuerySender { get; private set; }
     }
 
     public class RelatedArgumentsDefenderResponseMsg
     {
-        public RelatedArgumentsDefenderResponseMsg(List<int> argsList)
+        public RelatedArgumentsDefenderResponseMsg(List<string> argsList)
         {
             RelatedArguments = argsList;
         }
-        public IReadOnlyList<int> RelatedArguments { get; private set; }
+        public IReadOnlyList<string> RelatedArguments { get; private set; }
     }
 
     public class RelatedArgumentsProsecutorResponseMsg
     {
-        public RelatedArgumentsProsecutorResponseMsg(List<int> argsList)
+        public RelatedArgumentsProsecutorResponseMsg(List<string> argsList)
         {
             RelatedArguments = argsList;
         }
-        public IReadOnlyList<int> RelatedArguments { get; private set; }
+        public IReadOnlyList<string> RelatedArguments { get; private set; }
     }
 
     public class NodeResultMsg
     {
-        public NodeResultMsg(int argument, bool active = true)
+        public NodeResultMsg(string argument, bool active = true)
         {
             Argument = argument;
             Active = active;
         }
-        public int Argument { get; private set; }
+        public string Argument { get; private set; }
         public bool Active { get; private set; }
     }
 

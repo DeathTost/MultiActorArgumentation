@@ -100,7 +100,7 @@ namespace MultiActorArgumentation.Argumentation
         {
             Receive<RelatedArgumentsQueryMsg>((x) =>
             {
-                if (!KilledAChild && x.BlacklistedArguments.Count == 3)
+                if (!KilledAChild && x.BlacklistedArguments.Count == 2)
                 {
                     Console.WriteLine("I killed a child and I liked it");
                     Context.System.Scheduler.ScheduleOnce(TimeSpan.FromSeconds(100), x.QuerySender, Kill.Instance);

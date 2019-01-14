@@ -33,7 +33,6 @@ namespace MultiActorArgumentation.Argumentation
             }
             else
             {
-                //System.Console.WriteLine($"{layersLeft} is 0. No new children.");
                 Answer(argument);
             }
 
@@ -68,7 +67,7 @@ namespace MultiActorArgumentation.Argumentation
         {
             Receive<RelatedArgumentsDefenderResponseMsg>((x) =>
             {
-                Console.WriteLine($"Creating {x.RelatedArguments.Count} Defender children");
+                Console.WriteLine($"{Self.Path} creates {x.RelatedArguments.Count} defender children");
                 var i = 0;
                 foreach (var id in x.RelatedArguments)
                 {
@@ -88,7 +87,7 @@ namespace MultiActorArgumentation.Argumentation
         {
             Receive<RelatedArgumentsProsecutorResponseMsg>((x) =>
             {
-                Console.WriteLine("Creating Prosecutor children");
+                Console.WriteLine($"{Self.Path} creates {x.RelatedArguments.Count} prosecutor children");
                 var i = 0;
                 foreach (var id in x.RelatedArguments)
                 {
@@ -153,11 +152,11 @@ namespace MultiActorArgumentation.Argumentation
         {
             if (isBored)
             {
-                Console.WriteLine("Nothing is happening with me... I'm bored, goodbye");
+                Console.WriteLine($"{Self.Path} timed out");
             }
             else if (DefenderChildren.Count == 0 && ProsecutorChildren.Count == 0)
             {
-                Console.WriteLine("Got no arguments from Prosecutor and Defender");
+                Console.WriteLine($"{Self.Path} got no arguments from Prosecutor and Defender");
             }
             else
             {
@@ -177,14 +176,12 @@ namespace MultiActorArgumentation.Argumentation
         {
             if (Turn * EvaluationValue >= 0)
             {
-                Console.WriteLine("[ATTACK]" + Argument);
-                //System.Console.WriteLine("Evaluated to be active");
+                Console.WriteLine($"{Self.Path} active");
                 Answer(Argument);
             }
             else
             {
-                Console.WriteLine("[DEFENSE]" + Argument);
-                //System.Console.WriteLine("Evaluated to be disactivated");
+                Console.WriteLine($"{Self.Path} inactive");
                 Answer(Argument, false);
             }
         }

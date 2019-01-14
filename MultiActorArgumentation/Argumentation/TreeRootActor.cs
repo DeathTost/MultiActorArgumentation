@@ -53,8 +53,11 @@ namespace MultiActorArgumentation.Argumentation
         {
             Receive<NodeResultMsg>((x) =>
             {
-                resolvedCases[x.Argument] = x.Active;
-                finishedCases[x.Argument] = true;
+                if (!string.IsNullOrEmpty(x.Argument))
+                {
+                    resolvedCases[x.Argument] = x.Active;
+                    finishedCases[x.Argument] = true;
+                }
                 counter++;
 
                 if (!isFinished && counter >= resolvedCases.Count)
@@ -66,9 +69,16 @@ namespace MultiActorArgumentation.Argumentation
 
             Receive<ReceiveTimeout>((x) =>
             {
-                if (isFinished || counter >= resolvedCases.Count)
+                if (counter >= resolvedCases.Count)
                 {
-                    return;
+                    if (!isFinished)
+                    {
+                        Self.Tell(new NodeResultMsg("", true));
+                    }
+                    else
+                    {
+                        return;
+                    }
                 }
                 counter++;
             });

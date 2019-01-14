@@ -176,12 +176,12 @@ namespace MultiActorArgumentation.Argumentation
         {
             if (Turn * EvaluationValue >= 0)
             {
-                Console.WriteLine($"{Self.Path} active");
+                Console.WriteLine($"{Self.Path} argument {Argument} is active");
                 Answer(Argument);
             }
             else
             {
-                Console.WriteLine($"{Self.Path} inactive");
+                Console.WriteLine($"{Self.Path} argument {Argument} is inactive");
                 Answer(Argument, false);
             }
         }

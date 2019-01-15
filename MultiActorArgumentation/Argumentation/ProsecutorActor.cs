@@ -8,7 +8,7 @@ namespace MultiActorArgumentation.Argumentation
 {
     public class ProsecutorActor : ReceiveActor
     {
-        private double threshold = 0.05;
+        private double threshold;
         private IList<string> negativeParagraphs;
 
         public ProsecutorActor(IReadOnlyList<object> paragraphs)
@@ -31,9 +31,9 @@ namespace MultiActorArgumentation.Argumentation
         {
             Receive<RelatedArgumentsQueryMsg>((x) =>
             {
-                //JUST MOCKUP, BLACKLIST ARGUMENTS NEED TO CHANGE TYPE FROM INT TO STRING
                 using (Py.GIL())
                 {
+                    threshold = 0.05;
                     dynamic pythonDataProcessing = Py.Import("data_processing");
                     var converter = new PyConverter();
                     converter.AddListType();

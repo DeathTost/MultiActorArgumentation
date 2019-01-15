@@ -9,7 +9,7 @@ namespace MultiActorArgumentation.Argumentation
     public class DefenderActor : ReceiveActor
     {
         private IList<string> positiveParagraphs;
-        private double threshold = 0.05;
+        private double threshold;
 
         public DefenderActor(IReadOnlyList<object> paragraphs)
         {
@@ -30,9 +30,9 @@ namespace MultiActorArgumentation.Argumentation
         {
             Receive<RelatedArgumentsQueryMsg>((x) =>
             {
-                //JUST MOCKUP, BLACKLIST ARGUMENTS NEED TO CHANGE TYPE FROM INT TO STRING
                 using (Py.GIL())
                 {
+                    threshold = 0.05;
                     dynamic pythonDataProcessing = Py.Import("data_processing");
                     var converter = new PyConverter();
                     converter.AddListType();

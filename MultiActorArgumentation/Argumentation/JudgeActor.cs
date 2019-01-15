@@ -102,7 +102,7 @@ namespace MultiActorArgumentation.Argumentation
                 {
                     Console.WriteLine("I killed a child and I liked it");
                     //x.QuerySender.Tell(Kill.Instance);
-                    //Context.System.Scheduler.ScheduleOnce(TimeSpan.FromSeconds(100), x.QuerySender, Kill.Instance);
+                    Context.System.Scheduler.ScheduleOnce(TimeSpan.FromSeconds(100), x.QuerySender, Kill.Instance);
                     KilledAChild = true;
                     return;
                 }

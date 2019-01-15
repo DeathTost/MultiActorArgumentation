@@ -19,7 +19,6 @@ namespace MultiActorArgumentation.Argumentation
         private bool Answered = false;
         private bool isBored = false;
 
-        // mock for deciding what to do with node
         private int EvaluationValue = 0;
 
         public TreeNodeActor(string argument,int turn, int layersLeft)
@@ -67,7 +66,7 @@ namespace MultiActorArgumentation.Argumentation
         {
             Receive<RelatedArgumentsDefenderResponseMsg>((x) =>
             {
-                Console.WriteLine($"{Self.Path} creates {x.RelatedArguments.Count} defender children");
+                Console.WriteLine($"[{Self.Path.ToStringWithoutAddress()}] creates {x.RelatedArguments.Count} defender children");
                 var i = 0;
                 foreach (var id in x.RelatedArguments)
                 {
@@ -87,7 +86,7 @@ namespace MultiActorArgumentation.Argumentation
         {
             Receive<RelatedArgumentsProsecutorResponseMsg>((x) =>
             {
-                Console.WriteLine($"{Self.Path} creates {x.RelatedArguments.Count} prosecutor children");
+                Console.WriteLine($"[{Self.Path.ToStringWithoutAddress()}] creates {x.RelatedArguments.Count} prosecutor children");
                 var i = 0;
                 foreach (var id in x.RelatedArguments)
                 {
@@ -152,15 +151,15 @@ namespace MultiActorArgumentation.Argumentation
         {
             if (isBored)
             {
-                Console.WriteLine($"{Self.Path} timed out");
+                Console.WriteLine($"[{Self.Path.ToStringWithoutAddress()}] timeout");
             }
             else if (DefenderChildren.Count == 0 && ProsecutorChildren.Count == 0)
             {
-                Console.WriteLine($"{Self.Path} got no arguments from Prosecutor and Defender");
+                Console.WriteLine($"[{Self.Path.ToStringWithoutAddress()}] is leaf");
             }
             else
             {
-                Console.WriteLine($"{Self.Path} was killed!");
+                Console.WriteLine($"[{Self.Path.ToStringWithoutAddress()}] was killed!");
             }
             
         }
@@ -176,12 +175,12 @@ namespace MultiActorArgumentation.Argumentation
         {
             if (Turn * EvaluationValue >= 0)
             {
-                Console.WriteLine($"{Self.Path} argument {Argument} is active");
+                Console.WriteLine($"[ACTIVE][{Self.Path.ToStringWithoutAddress()}] : {Argument}");
                 Answer(Argument);
             }
             else
             {
-                Console.WriteLine($"{Self.Path} argument {Argument} is inactive");
+                Console.WriteLine($"[INACTIVE][{Self.Path.ToStringWithoutAddress()}] : {Argument}");
                 Answer(Argument, false);
             }
         }

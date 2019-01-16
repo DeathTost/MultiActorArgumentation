@@ -1,0 +1,63 @@
+Choose prediction model <rf_model>|<bayes_model>|<svm_model>:
+rf_model
+rf_model loaded
+[[307  20  68]
+ [  8  26   4]
+ [ 47  10 231]]
+             precision    recall  f1-score   support
+
+          0       0.85      0.78      0.81       395
+          1       0.46      0.68      0.55        38
+          2       0.76      0.80      0.78       288
+
+avg / total       0.79      0.78      0.79       721
+
+Judge has come!
+Please provide a path to a file with your case. <case_file.txt>
+case_file.txt
+[/user/Judge/TreeRoot/case0] creates 1 defender children
+[/user/Judge/TreeRoot/case0/argument2DEF0] creates 2 defender children
+[ACTIVE][/user/Judge/TreeRoot/case0/argument2DEF0/argument1DEF0] : Whoever kills a human being  shall be subject to the penalty of the deprivation of liberty for a minimum term of 8 years, the penalty of deprivation of liberty for 25 years or the penalty of deprivation of liberty for life .
+[ACTIVE][/user/Judge/TreeRoot/case0/argument2DEF0/argument1DEF1] : Whoever initiates or wages a war of aggression  shall be subject to the penalty of the deprivation of liberty for a minimum term of 12 years, the penalty of deprivation of liberty for 25 years or the penalty of deprivation of liberty for life.
+[/user/Judge/TreeRoot/case0/argument2DEF0/argument1DEF1] is leaf
+[/user/Judge/TreeRoot/case0/argument2DEF0/argument1DEF0] is leaf
+[/user/Judge/TreeRoot/case0] creates 2 prosecutor children
+[/user/Judge/TreeRoot/case0/argument2PRO0] creates 2 defender children
+[ACTIVE][/user/Judge/TreeRoot/case0/argument2PRO0/argument1DEF0] : Whoever publicly incites to the commission of a crime  shall be subject to the penalty of deprivation of liberty for up to 3 years.
+[ACTIVE][/user/Judge/TreeRoot/case0/argument2PRO0/argument1DEF1] : If the perpetrator acts unintentionally he  shall be subject to the penalty of deprivation of liberty for up to 3 years.
+[/user/Judge/TreeRoot/case0/argument2PRO0/argument1DEF1] is leaf
+[/user/Judge/TreeRoot/case0/argument2PRO0/argument1DEF0] is leaf
+[/user/Judge/TreeRoot/case0/argument2PRO1] creates 2 defender children
+[ACTIVE][/user/Judge/TreeRoot/case0/argument2PRO1/argument1DEF0] : If the perpetrator acts unintentionally he shall be subject to the penalty of the deprivation of liberty for a term of between 3 months and 5 years.
+[/user/Judge/TreeRoot/case0/argument2PRO1/argument1DEF0] is leaf
+[ACTIVE][/user/Judge/TreeRoot/case0/argument2PRO1/argument1DEF1] : Whoever publicly incites to the commission of a crime  shall be subject to the penalty of deprivation of liberty for up to 3 years.
+[/user/Judge/TreeRoot/case0/argument2PRO1/argument1DEF1] is leaf
+[/user/Judge/TreeRoot/case0/argument2DEF0] creates 2 prosecutor children
+[ACTIVE][/user/Judge/TreeRoot/case0/argument2DEF0/argument1PRO0] : Whoever, acting with the purpose of removing by force the constitutional authority of the Republic of Poland, undertakes activity aimed at the attaining of that purpose,  shall be subject to the penalty of the deprivation of liberty for a minimum term of 3 years.
+[/user/Judge/TreeRoot/case0/argument2DEF0/argument1PRO0] is leaf
+[ACTIVE][/user/Judge/TreeRoot/case0/argument2DEF0/argument1PRO1] : Whoever makes attempt on the life of the President of the Republic of Poland  shall be subject to the penalty of the deprivation of liberty for a minimum term of 12 years, the penalty of deprivation of liberty for 25 years or the penalty of
+deprivation of liberty for life.
+[ACTIVE][/user/Judge/TreeRoot/case0/argument2DEF0] : Whoever, acting with the purpose to deprive the Republic of Poland of its independence, to detach a portion of its territory, to overthrow by force its constitutional system, or undertakes, in agreement with other persons, activities
+aiming at the realisation of this purpose,  shall be subject to the penalty of the deprivation of liberty for a minimum term of 10 years, the penalty of deprivation of liberty for 25 years or the penalty of
+deprivation of liberty for life.
+[/user/Judge/TreeRoot/case0/argument2DEF0/argument1PRO1] is leaf
+[/user/Judge/TreeRoot/case0/argument2DEF0] was killed!
+[/user/Judge/TreeRoot/case0/argument2PRO0] creates 2 prosecutor children
+[ACTIVE][/user/Judge/TreeRoot/case0/argument2PRO0/argument1PRO0] : Whoever insults the Nation or the Republic of Poland in public  shall be subject to the penalty of the deprivation of liberty for up to 3 years.
+[/user/Judge/TreeRoot/case0/argument2PRO0/argument1PRO0] is leaf
+[ACTIVE][/user/Judge/TreeRoot/case0/argument2PRO0/argument1PRO1] : Whoever commits an active assault on the President of the Republic of Poland  shall be subject to the penalty of the deprivation of liberty for a term of between 3 months and 5 years.
+[ACTIVE][/user/Judge/TreeRoot/case0/argument2PRO0] : Whoever insults the President of the Republic of Poland in public  shall be subject to the penalty of the deprivation of liberty for up to 3 years.
+[/user/Judge/TreeRoot/case0/argument2PRO0/argument1PRO1] is leaf
+[/user/Judge/TreeRoot/case0/argument2PRO0] was killed!
+[/user/Judge/TreeRoot/case0/argument2PRO1] creates 2 prosecutor children
+[ACTIVE][/user/Judge/TreeRoot/case0/argument2PRO1/argument1PRO0] : Whoever deprives a human being of their liberty  shall be subject to the penalty of the deprivation of liberty for a term of between 3 months and 5 years.
+[/user/Judge/TreeRoot/case0/argument2PRO1/argument1PRO0] is leaf
+[ACTIVE][/user/Judge/TreeRoot/case0/argument2PRO1/argument1PRO1] : Whoever unintentionally causes the death of a human being  shall be subject to the penalty of the deprivation of liberty for a term of between 3 months and 5 years.
+[/user/Judge/TreeRoot/case0/argument2PRO1/argument1PRO1] is leaf
+[ACTIVE][/user/Judge/TreeRoot/case0/argument2PRO1] : Whoever commits an active assault on the President of the Republic of Poland  shall be subject to the penalty of the deprivation of liberty for a term of between 3 months and 5 years.
+[/user/Judge/TreeRoot/case0/argument2PRO1] was killed!
+[INACTIVE][/user/Judge/TreeRoot/case0] : Tom is juvenile, but he assasinated President of the Republic of Poland.
+[/user/Judge/TreeRoot/case0] was killed!
+Tom is juvenile, but he assasinated President of the Republic of Poland. |  case defeated
+Case is closed.
+Judge has left!

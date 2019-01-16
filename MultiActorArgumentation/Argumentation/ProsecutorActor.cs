@@ -41,28 +41,33 @@ namespace MultiActorArgumentation.Argumentation
                     var argument = x.BlacklistedArguments.First();
                     var paragraphsLeft = negativeParagraphs.Except(x.BlacklistedArguments).ToList();
                     var resultList = new List<string>();
-                    foreach (var paragraph in paragraphsLeft)
-                    {
-                        
-                        var ngramEvaluation = pythonDataProcessing.evaluate_sentence(argument, paragraph, 2);
-                        List<object> ngramScores = converter.ToClr(ngramEvaluation);
-                        var value = 0.0;
-                        foreach (var score in ngramScores)
-                        {
-                            value += (double)score;
-                        }
-                        if (value > threshold)
-                        {
-                            threshold = value;
-                            resultList.Add(paragraph);
-                        }
-                        if (resultList.Count > 5)
-                        {
-                            break;
-                        }
-                    }
+					var valueMap = new Dictionary<int, Double>();
+					foreach (var paragraph in paragraphsLeft)
+					{
+						var ngramEvaluation = pythonDataProcessing.evaluate_sentence(argument, paragraph, 2);
+						List<object> ngramScores = converter.ToClr(ngramEvaluation);
+						var value = 0.0;
+						foreach (var score in ngramScores)
+						{
+							value += (double)score;
+						}
+						valueMap.Add(valueMap.Count, value);
+					}
+					Dictionary<int, Double> sortedValueMap = (valueMap.OrderByDescending(y => y.Value)).ToDictionary(y => y.Key, y => y.Value);
 
-                    x.QuerySender.Tell(new RelatedArgumentsProsecutorResponseMsg(resultList));
+					foreach (var val in sortedValueMap)
+					{
+						if (val.Value > threshold)
+							resultList.Add(paragraphsLeft.ElementAt(val.Key));
+						else
+							break;
+						if (resultList.Count > 1)
+						{
+							break;
+						}
+					}
+
+					x.QuerySender.Tell(new RelatedArgumentsProsecutorResponseMsg(resultList));
                 }      
             });
         }

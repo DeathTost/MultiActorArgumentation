@@ -38,29 +38,35 @@ namespace MultiActorArgumentation.Argumentation
                     converter.AddListType();
                     converter.Add(new DoubleType());
                     var argument = x.BlacklistedArguments.First();
-                    var paragraphsLeft = positiveParagraphs.Except(x.BlacklistedArguments).ToList();
-                    var resultList = new List<string>();
-                    foreach (var paragraph in paragraphsLeft)
-                    {
+                    List<String> paragraphsLeft = positiveParagraphs.Except(x.BlacklistedArguments).ToList();
+					var valueMap = new Dictionary<int, Double>();
+					var resultList = new List<string>();
+					foreach (var paragraph in paragraphsLeft)
+					{
+						var ngramEvaluation = pythonDataProcessing.evaluate_sentence(argument, paragraph, 2);
+						List<object> ngramScores = converter.ToClr(ngramEvaluation);
+						var value = 0.0;
+						foreach (var score in ngramScores)
+						{
+							value += (double)score;
+						}
+						valueMap.Add(valueMap.Count, value);
+					}
+					Dictionary<int, Double> sortedValueMap = (valueMap.OrderByDescending(y => y.Value)).ToDictionary(y => y.Key, y => y.Value);
 
-                        var ngramEvaluation = pythonDataProcessing.evaluate_sentence(argument, paragraph, 2);
-                        List<object> ngramScores = converter.ToClr(ngramEvaluation);
-                        var value = 0.0;
-                        foreach (var score in ngramScores)
-                        {
-                            value += (double)score;
-                        }
-                        if (value > threshold)
-                        {
-                            threshold = value;
-                            resultList.Add(paragraph);
-                        }
-                        if (resultList.Count > 5)
-                        {
-                            break;
-                        }
-                    }
-                    x.QuerySender.Tell(new RelatedArgumentsDefenderResponseMsg(resultList));
+					foreach (var val in sortedValueMap)
+					{
+						if (val.Value > threshold)
+							resultList.Add(paragraphsLeft.ElementAt(val.Key));
+						else
+							break;
+						if (resultList.Count > 1)
+						{
+							break;
+						}
+					}
+
+					x.QuerySender.Tell(new RelatedArgumentsDefenderResponseMsg(resultList));
                 }
             });
         }

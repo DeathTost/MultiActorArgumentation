@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 
+
 namespace MultiActorArgumentation.Argumentation
 {
     public class TreeNodeActor : ReceiveActor
@@ -32,8 +33,9 @@ namespace MultiActorArgumentation.Argumentation
             }
             else
             {
-                Answer(argument);
-            }
+                //Answer(argument);
+				Eval();
+			}
 
             CreateDefenderChildren(layersLeft);
             CreateProsecutorChildren(layersLeft);
